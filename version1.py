@@ -1,4 +1,5 @@
 import pygame
+import random
 
 pygame.init()
 #In order to control the speed of updating the images in pygame screen, we have to insert this function :
@@ -20,11 +21,12 @@ fruit_slice = pygame.image.load('fruits/pasteque_slice.png')
 fruit_image = pygame.transform.scale(fruit_image, (50, 50))  # change the dimension of the image because, it is bigger than the screen size
 fruit_slice = pygame.transform.scale(fruit_slice, (50, 50))
 
+images = [fruit_image, fruit_image]
 fruit_width, fruit_height = fruit_image.get_size()
 fruit_x = (w - fruit_width) // 2  #Initial position of the image (bellow)
 fruit_y = h - fruit_height
 speed_x = 0.5  # displacement speed on x-axis
-speed_y = -8  # displacement speed on y-axis, it is negative because the fruit is going up (onfluenced by the gravitationam fprce)
+speed_y = random.randint(-10, -5)
 gravity = 0.1
 
 #The target = circle (we can change it)
@@ -42,7 +44,7 @@ def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
 
 
 def play():
-    global fruit_x, fruit_y, target_pos, speed_y  #in order to change thel later
+    global fruit_x, fruit_y, target_pos, speed_x, speed_y, fruit_image  #in order to change thel later
     # Here I added speed_y as a global variable because it is affected by the gravity
     run = True
 
@@ -56,11 +58,13 @@ def play():
                 if event.key == pygame.K_p :
                     target_pos = pygame.mouse.get_pos()
                     print(f"The postions of the target is : {target_pos}")
-
+        
         fruit_x += speed_x #displacement of the fruit image in the x+
         speed_y += gravity # (v(y) = v0 + g*t) 
         fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
         #Here I used gravitational law : we have integrated the second law of Newton sum(F) = m*a
+       
+
 
         screen.blit(fruit_image, (fruit_x, fruit_y)) #shiw the fruit_image
 

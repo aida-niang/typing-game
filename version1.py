@@ -23,7 +23,9 @@ fruit_slice = pygame.transform.scale(fruit_slice, (50, 50))
 fruit_width, fruit_height = fruit_image.get_size()
 fruit_x = (w - fruit_width) // 2  #Initial position of the image (bellow)
 fruit_y = h - fruit_height
-speed = 5  # displacement speed
+speed_x = 0.5  # displacement speed on x-axis
+speed_y = -8  # displacement speed on y-axis, it is negative because the fruit is going up (onfluenced by the gravitationam fprce)
+gravity = 0.1
 
 #The target = circle (we can change it)
 target_pos = None  
@@ -40,7 +42,8 @@ def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
 
 
 def play():
-    global fruit_y, target_pos  #in order to change thel later
+    global fruit_x, fruit_y, target_pos, speed_y  #in order to change thel later
+    # Here I added speed_y as a global variable because it is affected by the gravity
     run = True
 
     while run:
@@ -54,10 +57,10 @@ def play():
                     target_pos = pygame.mouse.get_pos()
                     print(f"The postions of the target is : {target_pos}")
 
-
-        fruit_y -= speed #displacement of the fruit image in the y- (opposite direction)
-        if fruit_y + fruit_height < 0: #if it attemps the border, it return to the initial position (bellow)
-            fruit_y = h 
+        fruit_x += speed_x #displacement of the fruit image in the x+
+        speed_y += gravity # (v(y) = v0 + g*t) 
+        fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
+        #Here I used gravitational law : we have integrated the second law of Newton sum(F) = m*a
 
         screen.blit(fruit_image, (fruit_x, fruit_y)) #shiw the fruit_image
 

@@ -42,6 +42,17 @@ def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
     distance = ((fruit_center[0] - target_pos[0]) ** 2 + (fruit_center[1] - target_pos[1]) ** 2) ** 0.5 #the distance between the target and the image centers (sqrt((x2 - x1)² + (y2 - y1)²))
     return distance <= target_radius + fruit_size[0] // 2  # law : we have collision between 2 circles if d <= R1 + R2
 
+def show_fruit_again() :
+    global fruit_x, fruit_y, speed_x, speed_y
+    fruit_x = (w - fruit_width) // 2  #Initial position of the image (bellow)
+    fruit_y = h - fruit_height
+    speed_x = 0.5  # displacement speed on x-axis
+    speed_y = random.randint(-10, -5)
+    gravity = 0.1
+    fruit_x += speed_x #displacement of the fruit image in the x+
+    speed_y += gravity # (v(y) = v0 + g*t) 
+    fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
+
 
 def play():
     global fruit_x, fruit_y, target_pos, speed_x, speed_y, fruit_image  #in order to change thel later
@@ -63,7 +74,8 @@ def play():
         speed_y += gravity # (v(y) = v0 + g*t) 
         fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
         #Here I used gravitational law : we have integrated the second law of Newton sum(F) = m*a
-       
+        if (fruit_x < fruit_width // 2) or (fruit_x > w - fruit_width) or (fruit_y > h) :
+            show_fruit_again()
 
 
         screen.blit(fruit_image, (fruit_x, fruit_y)) #shiw the fruit_image

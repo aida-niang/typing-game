@@ -40,6 +40,10 @@ fruits = []
 #Running the game
 RUNNING = True
 
+#speed and gravity
+gravity = 0.1
+
+
 
 #ajout d'une classe pour les fruits
 class Fruit:
@@ -48,23 +52,45 @@ class Fruit:
         self.y = y
         self.image = image
         self.letter = letter
-        self.speed = random.randint(3,8)
+        self.speed_x = -random.uniform(-2, 2)  # Mouvement horizontal aléatoire
+        self.speed_y = random.uniform(0.5, 1)  # Vitesse initiale vers le haut
+        self.gravity = 0.1  # Effet de gravité constant
+        
 
     def draw(self, screen):
         # Dessiner le fruit
-        screen.blit(self.image, (self.x, self.y))
+        a=screen.blit(self.image, (self.x, -(self.y)))
         # Dessiner la lettre associée
-        text = font.render(self.letter, True, WHITE)
-        screen.blit(text, (self.x + 10, self.y + 10))
+        text = font.render(self.letter, True, RED)
+        screen.blit(text, a)
 
     def move(self):
-        self.y += self.speed
+        # Appliquer la gravité
+        self.speed_y += self.gravity
+
+        # Mettre à jour la position
+        self.x += self.speed_x
+        self.y += self.speed_y
+
+    #     # Si le fruit tombe en bas de l'écran, le repositionner
+    #     if self.y > 500:  # Supposons que 500 soit la hauteur de l'écran
+    #         self.reset_position()
+    
+    # def reset_position(self):
+    #     """
+    #     Réinitialiser la position du fruit en haut de l'écran
+    #     avec une vitesse aléatoire.
+    #     """
+    #     self.x = random.randint(0, 800)  # Supposons que 800 soit la largeur de l'écran
+    #     self.y = random.randint(-50, -10)  # Réapparaît légèrement au-dessus de l'écran
+    #     self.speed_x = random.uniform(-2, 2)  # Réinitialiser la vitesse horizontale
+    #     self.speed_y = random.randint(-10, -5)  # Réinitialiser la vitesse verticale
 
 
 
     def spawn():
         x = random.randint(50, w - 50)
-        y = -50  # Commence en haut de l'écran
+        y = -500  # Commence en haut de l'écran
         letter = random.choice(string.ascii_uppercase)  # Lettre aléatoire
         fruit = Fruit(x, y, fruit_image, letter)
         fruits.append(fruit)

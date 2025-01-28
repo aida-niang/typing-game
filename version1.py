@@ -15,18 +15,22 @@ screen = pygame.display.set_mode((w, h))
 pygame.display.set_caption('Ninja Fruit')
 screen.fill(WHITE)
 
+#load sounds :
+sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
+sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
+
+#load images :
 fruit_image = pygame.image.load('fruits/pasteque.png')
 fruit_slice = pygame.image.load('fruits/pasteque_slice.png')
 
 fruit_image = pygame.transform.scale(fruit_image, (50, 50))  # change the dimension of the image because, it is bigger than the screen size
 fruit_slice = pygame.transform.scale(fruit_slice, (50, 50))
 
-images = [fruit_image, fruit_image]
 fruit_width, fruit_height = fruit_image.get_size()
 fruit_x = (w - fruit_width) // 2  #Initial position of the image (bellow)
 fruit_y = h - fruit_height
-speed_x = 0.5  # displacement speed on x-axis
-speed_y = random.randint(-10, -5)
+speed_x = random.uniform(-1.0, 1.0)  # displacement speed on x-axis
+speed_y = random.uniform(-10.0, -5.0)  # displacement speed on y-axis
 gravity = 0.1
 
 #The target = circle (we can change it)
@@ -44,11 +48,10 @@ def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
 
 def show_fruit_again() :
     global fruit_x, fruit_y, speed_x, speed_y
-    fruit_x = (w - fruit_width) // 2  #Initial position of the image (bellow)
-    fruit_y = h - fruit_height
-    speed_x = 0.5  # displacement speed on x-axis
-    speed_y = random.randint(-10, -5)
-    gravity = 0.1
+    
+    speed_x = random.uniform(-1.0, 1.0)  # displacement speed on x-axis
+    speed_y = random.uniform(-10.0, -5.0)
+    gravity = 0.3
     fruit_x += speed_x #displacement of the fruit image in the x+
     speed_y += gravity # (v(y) = v0 + g*t) 
     fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
@@ -86,6 +89,8 @@ def play():
 
 
         if detect_collision((fruit_x, fruit_y), (fruit_width, fruit_height), target_pos, target_radius):
+            sound_loser.play()
+            pygame.time.wait(int(sound_loser.get_length() * 1000))
             print("Collision detected!")
             screen.blit(fruit_slice, (fruit_x, fruit_y)) #replace the full fruit by the sliced fruit
             run = False     #if there is collision, the program is closed

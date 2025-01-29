@@ -5,9 +5,10 @@ pygame.init()
 #In order to control the speed of updating the images in pygame screen, we have to insert this function :
 clock = pygame.time.Clock()
 
-w = 500
+w = 800
 h = 500
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 

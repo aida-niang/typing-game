@@ -36,6 +36,10 @@ sliced_fruit_images = {
     "strawberry": pygame.image.load("images/strawberry_slice.png"),
 }
 
+#background yin-yang
+background=pygame.image.load("images/background_yin.jpeg")
+background=background.convert()
+
 # Resize all fruit images
 for key in fruit_images:
     fruit_images[key] = pygame.transform.scale(fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
@@ -83,7 +87,7 @@ class Fruit:
         # Draw the letter on the fruit
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + FRUIT_SIZE // 4, self.y + FRUIT_SIZE // 4))
+        screen.blit(letter_text, (self.x + FRUIT_SIZE // 2, self.y + FRUIT_SIZE // 2))
 
     def reset(self):
         self.type = random.choice(list(fruit_images.keys()))  # New random fruit
@@ -116,8 +120,8 @@ class Bomb:
     def draw(self):
         screen.blit(bomb_image, (self.x, self.y))
         font = pygame.font.Font(None, 36)
-        letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + BOMB_SIZE // 4, self.y + BOMB_SIZE // 4))
+        letter_text = font.render(self.letter, True, WHITE)
+        screen.blit(letter_text, (self.x + BOMB_SIZE // 2, self.y + BOMB_SIZE // 2))
 
     def reset(self):
         self.x = random.randint(0, WIDTH - BOMB_SIZE)
@@ -145,7 +149,7 @@ class Ice:
         # Draw the letter on the ice
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + ICE_SIZE // 4, self.y + ICE_SIZE // 4))
+        screen.blit(letter_text, (self.x + ICE_SIZE // 2, self.y + ICE_SIZE // 2))
 
     def reset(self):
         self.x = random.randint(0, WIDTH - ICE_SIZE)
@@ -182,7 +186,7 @@ def play():
 
     run = True
     while run:
-        screen.fill(WHITE)  # Clear screen
+        screen.blit(background, (0,0))  # yin yang background for an authentic fruit ninja experience
         click_pos = None
 
         for event in pygame.event.get():

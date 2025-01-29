@@ -23,9 +23,9 @@ clock = pygame.time.Clock()
 fruit_images = {
     "apple": pygame.image.load("images/apple.png"),
     "banana": pygame.image.load("images/banana.png"),
-    "orange": pygame.image.load("images/orange.png"),
-    "pasteque": pygame.image.load("images/pasteque.png"),
-    "strawberry": pygame.image.load("images/strawberry.png"),
+    "orange": pygame.image.load("images/orange.png"),  
+    "pasteque": pygame.image.load("images/pasteque.png"),  
+    "strawberry": pygame.image.load("images/strawberry.png"), 
 }
 
 sliced_fruit_images = {
@@ -36,7 +36,7 @@ sliced_fruit_images = {
     "strawberry": pygame.image.load("images/strawberry_slice.png"),
 }
 
-#background ying-yang
+#background yin-yang
 background=pygame.image.load("images/background_yin.jpeg")
 background=background.convert()
 
@@ -64,10 +64,15 @@ class Fruit:
         self.sliced = False
         self.sliced_time = 0 
 
-    def update(self):
-        self.x += self.speed_x
-        self.speed_y += self.gravity
-        self.y += self.speed_y
+    def update(self, time_paused):
+        if not time_paused:  # If not paused, apply regular gravity and movement
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
+        else:  # If time is paused, slow down the fruit's movement
+            self.speed_x *= 0.1  # Slow down horizontal movement
+            self.speed_y *= 0.1  # Slow down vertical movement
+            self.y += self.speed_y  # Only apply vertical movement for "slowed-down" effect
 
         # If sliced, wait before resetting
         if self.sliced and pygame.time.get_ticks() - self.sliced_time > SLICED_DISPLAY_TIME * 50:
@@ -94,22 +99,26 @@ class Fruit:
         self.sliced = False  # Reset slice state
 
 class Bomb:
-    def __init__(self, letter="B"):
+    def __init__(self):
         self.x = random.randint(0, WIDTH - BOMB_SIZE)
         self.y = HEIGHT - BOMB_SIZE
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
-        self.gravity = 0.1
-        self.letter = letter  # Letter assigned to bomb
+        self.gravity = 0.1  # Ajout de la gravité
+        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-    def update(self):
-        self.x += self.speed_x
-        self.speed_y += self.gravity
-        self.y += self.speed_y
+    def update(self, time_paused=False):  # Ajout de time_paused
+        if not time_paused:
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
+        else:
+            self.speed_x *= 0.1  # Ralentir le mouvement horizontal
+            self.speed_y *= 0.1  # Ralentir la chute
+            self.y += self.speed_y
 
     def draw(self):
         screen.blit(bomb_image, (self.x, self.y))
-        # Draw the letter on the bomb
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, WHITE)
         screen.blit(letter_text, (self.x + BOMB_SIZE // 2, self.y + BOMB_SIZE // 2))
@@ -120,14 +129,15 @@ class Bomb:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
 
+
 class Ice:
-    def __init__(self, letter="I"):
+    def __init__(self):
         self.x = random.randint(0, WIDTH - ICE_SIZE)
         self.y = HEIGHT - ICE_SIZE
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
-        self.letter = letter  # Letter assigned to ice
+        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
     def update(self):
         self.x += self.speed_x
@@ -176,7 +186,7 @@ def play():
 
     run = True
     while run:
-        screen.blit(background,(0,0))
+        screen.blit(background, (0,0))  # yin yang background for an authentic fruit ninja experience
         click_pos = None
 
         for event in pygame.event.get():
@@ -186,37 +196,41 @@ def play():
                 click_pos = pygame.mouse.get_pos()
             if event.type == pygame.KEYDOWN:
                 key_pressed = pygame.key.name(event.key).upper()  # Get the pressed key
-                # Handle key press for fruits even during the pause
                 for fruit in fruits:
                     if fruit.letter == key_pressed and not fruit.sliced:
                         fruit.sliced = True
                         fruit.sliced_time = pygame.time.get_ticks()  # Store slice time
                         score += 1  # Increase score when correct key is pressed
                         break
-
-                # Detect Bomb or Ice key press (Pause the game if Ice is pressed)
+                
+                # Detect Bomb or Ice key press
                 if bomb.letter == key_pressed:
-                    bomb.reset()
-                    score -= 1  # Penalize player for hitting bomb
+                    font = pygame.font.Font(None, 48)
+                    game_over_text = font.render("Game Over!", True, RED)
+                    screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+                    run = False
                 if ice.letter == key_pressed:
-                    time_paused = True  # Start pause
-                    pause_timer = clock.get_fps() * random.randint(3, 5)  # Set a random pause time in frames
+                    time_paused = True
+                    pause_timer = clock.get_fps() * random.randint(3, 5)
                     ice.reset()
 
         # Pause mechanics
         if time_paused:
             pause_timer -= 1
             if pause_timer <= 0:
-                time_paused = False  # End pause when the timer runs out
+                time_paused = False
 
         if not time_paused:
-            # Update objects (only if not paused)
+            # Update objects
             for fruit in fruits:
-                fruit.update()
+                fruit.update(time_paused)
             bomb.update()
             ice.update()
 
-            # Check for mouse clicks and calculate combo (even when paused, if no bomb or ice is clicked)
+        
+            # Check for clicks and calculate combo
             if click_pos:
                 combo_count = 0
                 for fruit in fruits:
@@ -230,12 +244,16 @@ def play():
                     score += combo_count - 1  # Bonus for combos
                 
                 if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
-                    bomb.reset()  # "Slice" bomb
-                    score -= 1  # Penalize score for slicing bomb
-                
+                    font = pygame.font.Font(None, 48)
+                    game_over_text = font.render("Game Over!", True, RED)
+                    screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+                    run = False
+
                 if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
-                    time_paused = True  # Pause the game
-                    pause_timer = clock.get_fps() * random.randint(3, 5)  # Set pause time
+                    time_paused = True
+                    pause_timer = clock.get_fps() * random.randint(3, 5)
                     ice.reset()
 
             for fruit in fruits:

@@ -19,45 +19,67 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ninja Fruit")
 clock = pygame.time.Clock()
 
-# Load images
-fruit_image = pygame.image.load("fruits/pasteque.png")
-fruit_slice = pygame.image.load("fruits/pasteque_slice.png")
-bomb_image = pygame.image.load("fruits/bomb.png")
-ice_image = pygame.image.load("fruits/ice.png")
+# Load fruit images (Normal & Sliced)
+fruit_images = {
+    "apple": pygame.image.load("images/apple.png"),
+    "banana": pygame.image.load("images/banana.png"),
+    "orange": pygame.image.load("images/orange.png"),
+    "pasteque": pygame.image.load("images/pasteque.png"),
+    "strawberry": pygame.image.load("images/strawberry.png"),
+}
 
-# Scale images
-fruit_image = pygame.transform.scale(fruit_image, (FRUIT_SIZE, FRUIT_SIZE))
-fruit_slice = pygame.transform.scale(fruit_slice, (FRUIT_SIZE, FRUIT_SIZE))
+sliced_fruit_images = {
+    "apple": pygame.image.load("images/apple_slice.png"),
+    "banana": pygame.image.load("images/banana_slice.png"),
+    "orange": pygame.image.load("images/orange_slice.png"),
+    "pasteque": pygame.image.load("images/pasteque_slice.png"),
+    "strawberry": pygame.image.load("images/strawberry_slice.png"),
+}
+
+# Resize all fruit images
+for key in fruit_images:
+    fruit_images[key] = pygame.transform.scale(fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
+    sliced_fruit_images[key] = pygame.transform.scale(sliced_fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
+
+# Load and resize bomb & ice images
+bomb_image = pygame.image.load("images/bomb.png")
+ice_image = pygame.image.load("images/ice.png")
 bomb_image = pygame.transform.scale(bomb_image, (BOMB_SIZE, BOMB_SIZE))
 ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
+
+# Load bomb sliced image
+bomb_sliced_image = pygame.image.load("images/bomb_slice.png")
+bomb_sliced_image = pygame.transform.scale(bomb_sliced_image, (BOMB_SIZE, BOMB_SIZE))
 
 # Classes for game objects
 class Fruit:
     def __init__(self):
+        self.type = random.choice(list(fruit_images.keys()))  
         self.x = random.randint(FRUIT_SIZE // 2, WIDTH - FRUIT_SIZE // 2)
         self.y = HEIGHT - FRUIT_SIZE
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
         self.sliced = False
-        self.sliced_time = 0  # Timer for sliced fruit
+        self.sliced_time = 0 
 
     def update(self):
         self.x += self.speed_x
         self.speed_y += self.gravity
         self.y += self.speed_y
 
-        # If sliced, wait a few frames before resetting
+        # If sliced, wait before resetting
         if self.sliced and pygame.time.get_ticks() - self.sliced_time > SLICED_DISPLAY_TIME * 50:
             self.reset()
 
     def draw(self):
         if self.sliced:
-            screen.blit(fruit_slice, (self.x, self.y))  # Show sliced fruit
+            screen.blit(sliced_fruit_images[self.type], (self.x, self.y))  
         else:
-            screen.blit(fruit_image, (self.x, self.y))  # Show normal fruit
-
+            screen.blit(fruit_images[self.type], (self.x, self.y))  
+            
     def reset(self):
+        self.type = random.choice(list(fruit_images.keys()))  # New random fruit
         self.x = random.randint(FRUIT_SIZE // 2, WIDTH - FRUIT_SIZE // 2)
         self.y = HEIGHT - FRUIT_SIZE
         self.speed_x = random.uniform(-1, 1)
@@ -71,20 +93,26 @@ class Bomb:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
+        self.sliced = False  # To track if the bomb has been sliced
 
     def update(self):
-        self.x += self.speed_x
-        self.speed_y += self.gravity
-        self.y += self.speed_y
+        if not self.sliced:  # Only update if not sliced
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
 
     def draw(self):
-        screen.blit(bomb_image, (self.x, self.y))
+        if self.sliced:
+            screen.blit(bomb_sliced_image, (self.x, self.y))  # Draw sliced bomb
+        else:
+            screen.blit(bomb_image, (self.x, self.y))  # Draw regular bomb
 
     def reset(self):
         self.x = random.randint(0, WIDTH - BOMB_SIZE)
         self.y = HEIGHT - BOMB_SIZE
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
+        self.sliced = False  # Reset sliced state when the bomb resets
 
 class Ice:
     def __init__(self):
@@ -125,7 +153,7 @@ def draw_score_and_lives(score, lives):
 
 # Main game loop
 def play():
-    fruits = [Fruit() for _ in range(5)]
+    fruits = [Fruit() for _ in range(3)]  
     bomb = Bomb()
     ice = Ice()
     score = 0
@@ -170,20 +198,16 @@ def play():
                     score += combo_count  # Base points
                     score += combo_count - 1  # Bonus for combos
                 
-                if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
-                    font = pygame.font.Font(None, 48)
-                    game_over_text = font.render("Game Over!", True, RED)
-                    screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
-                    pygame.display.flip()
-                    pygame.time.delay(2000)
-                    run = False
+                if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos) and not bomb.sliced:
+                    bomb.sliced = True  # Slice the bomb
+                    score -= 5  # Penalize the player for slicing the bomb
+                    print("Bomb Sliced!")  # Optional: Add some visual or audio feedback
 
                 if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
                     time_paused = True
                     pause_timer = clock.get_fps() * random.randint(3, 5)
                     ice.reset()
 
-            # Reset fruits that go off-screen
             for fruit in fruits:
                 if fruit.y > HEIGHT and not fruit.sliced:
                     lives -= 1
@@ -196,21 +220,13 @@ def play():
                         run = False
                     fruit.reset()
 
-            if bomb.y > HEIGHT or bomb.x < 0 or bomb.x > WIDTH:
-                bomb.reset()
-            if ice.y > HEIGHT or ice.x < 0 or ice.x > WIDTH:
-                ice.reset()
-
         # Draw objects
         for fruit in fruits:
             fruit.draw()
         bomb.draw()
         ice.draw()
-
-        # Draw score and lives
         draw_score_and_lives(score, lives)
 
-        # Update display
         pygame.display.flip()
         clock.tick(60)
 

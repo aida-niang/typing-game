@@ -82,7 +82,7 @@ class Fruit:
         # Draw the letter on the fruit
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + FRUIT_SIZE // 4, self.y + FRUIT_SIZE // 4))
+        screen.blit(letter_text, (self.x + FRUIT_SIZE // 2, self.y + FRUIT_SIZE // 2))
 
     def reset(self):
         self.type = random.choice(list(fruit_images.keys()))  # New random fruit
@@ -111,8 +111,8 @@ class Bomb:
         screen.blit(bomb_image, (self.x, self.y))
         # Draw the letter on the bomb
         font = pygame.font.Font(None, 36)
-        letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + BOMB_SIZE // 4, self.y + BOMB_SIZE // 4))
+        letter_text = font.render(self.letter, True, WHITE)
+        screen.blit(letter_text, (self.x + BOMB_SIZE // 2, self.y + BOMB_SIZE // 2))
 
     def reset(self):
         self.x = random.randint(0, WIDTH - BOMB_SIZE)
@@ -139,7 +139,7 @@ class Ice:
         # Draw the letter on the ice
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + ICE_SIZE // 4, self.y + ICE_SIZE // 4))
+        screen.blit(letter_text, (self.x + ICE_SIZE // 2, self.y + ICE_SIZE // 2))
 
     def reset(self):
         self.x = random.randint(0, WIDTH - ICE_SIZE)

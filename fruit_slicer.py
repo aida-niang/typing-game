@@ -86,7 +86,7 @@ class Fruit:
             
         # Draw the letter on the fruit
         font = pygame.font.Font(None, 36)
-        letter_text = font.render(self.letter, True, BLACK)
+        letter_text = font.render(self.letter, True, WHITE)
         screen.blit(letter_text, (self.x + FRUIT_SIZE // 2, self.y + FRUIT_SIZE // 2))
 
     def reset(self):

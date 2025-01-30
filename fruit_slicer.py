@@ -44,7 +44,7 @@ sliced_fruit_images = {
 
 #background yin-yang
 background=pygame.image.load("images/background_yin.jpeg")
-background_ice = pygame.image.load("images/background_ice.jpg")
+background_ice = pygame.image.load("images/background_ice.jpg").convert_alpha()
 background=background.convert()
 
 # Resize all fruit images
@@ -234,8 +234,9 @@ def choose_difficulty():
         screen.blit(background, (0,0))
         title_text = font.render("Choose difficulty level", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
-        go_back_text = font.render("<--Go back", True, RED)  
+        go_back_text = font.render("Press 'ESCAPE' to go back", True, RED)  
         screen.blit(go_back_text, (100, 100))
+        
 
         # Options 
         easy_text = font.render("1. Easy", True, BLACK)
@@ -276,10 +277,12 @@ def get_player_name():
     color = color_inactive
     active = False
     text = ''
-    font = pygame.font.Font(None, 32)
+    font = pygame.font.Font(None, 48)
 
     while True:
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))
+        go_back_text = font.render("Press 'ESCAPE' to go back", True, RED)  
+        screen.blit(go_back_text, (100, 100))
         draw_text("Enter your name:", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
         pygame.draw.rect(screen, color, input_box, 2)
         draw_text(text, font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
@@ -476,10 +479,13 @@ def play(score_file):
     lives = 3
     time_paused = False
     pause_timer = 0
-
+    frozen = False
+    frozen_start = 0
+    frozen_duration = 0
     run = True
     while run:
         screen.blit(background, (0, 0))  
+        
         click_pos = None
 
         for event in pygame.event.get():
@@ -507,11 +513,17 @@ def play(score_file):
                     pygame.time.wait(int(sound_loser.get_length() * 1000))
                     run = False
                     show_menu()
+                
                 if ice.letter == key_pressed:
+                    # ice_surface=background_ice.copy()
+                    # ice_surface.set_alpha(80) #adding a transparency effect so the user can still see the fruits
+                    # screen.blit(ice_surface, (0, 0))
+                    # pygame.display.flip()
+                    # pygame.time.delay(30)
                     time_paused = True
-                    screen.blit(background_ice, (0, 0))
                     pause_timer = clock.get_fps() * random.randint(3, 5)
                     ice.reset()
+
                     
 
         # Pause mechanics
@@ -547,15 +559,17 @@ def play(score_file):
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                 pygame.display.flip()
                 pygame.time.delay(2000)
-                sound_loser.play()
-                pygame.time.wait(int(sound_loser.get_length() * 1000))
+                #sound_loser.play()
+                #pygame.time.wait(int(sound_loser.get_length() * 1000))
                 run = False
                 choose_menu()
 
             if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
                 time_paused = True
                 screen.blit(background_ice, (0,0))
+                pygame.display.flip()
                 pause_timer = clock.get_fps() * random.randint(3, 5)
+                pygame.time.delay(int(pause_timer))
                 ice.reset()
                 
 

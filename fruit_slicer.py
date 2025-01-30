@@ -91,7 +91,7 @@ class Fruit:
 
     def reset(self):
         self.type = random.choice(list(fruit_images.keys()))  # New random fruit
-        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")  # Assign new random letter
+        self.letter = random.choice("ABCDEFGHIJKLMNOP")  # Assign new random letter
         self.x = random.randint(FRUIT_SIZE // 2, WIDTH - FRUIT_SIZE // 2)
         self.y = HEIGHT - FRUIT_SIZE
         self.speed_x = random.uniform(-1, 1)
@@ -105,7 +105,7 @@ class Bomb:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1  # Ajout de la gravité
-        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.letter = random.choice("QRSTU")
 
     def update(self, time_paused=False):  # Ajout de time_paused
         if not time_paused:
@@ -137,7 +137,7 @@ class Ice:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
-        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.letter = random.choice("VWXYZ")
 
     def update(self):
         self.x += self.speed_x
@@ -169,7 +169,7 @@ def detect_collision(obj_x, obj_y, obj_size, click_pos):
 # Draw score and lives
 def draw_score_and_lives(score, lives):
     font = pygame.font.Font(None, 36)
-    score_text = font.render(f"Score: {score}", True, BLACK)
+    score_text = font.render(f"Score: {score}", True, WHITE)
     lives_text = font.render(f"Lives: {lives}", True, RED)
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
@@ -255,6 +255,7 @@ def play():
                 time_paused = True
                 pause_timer = clock.get_fps() * random.randint(3, 5)
                 ice.reset()
+                
 
         # Handle fruits falling off the screen (if paused, they still drop)
         for fruit in fruits:

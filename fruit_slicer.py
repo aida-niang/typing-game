@@ -58,6 +58,10 @@ ice_image = pygame.image.load("images/ice.png")
 bomb_image = pygame.transform.scale(bomb_image, (BOMB_SIZE, BOMB_SIZE))
 ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 
+#images : boom and ice break
+bomb_image_sliced = pygame.image.load("images/bomb_slice.png")
+# ice_image_sliced = pygame.image.load("images/")
+
 # Classes for game objects
 class Fruit:
     def __init__(self, letter):

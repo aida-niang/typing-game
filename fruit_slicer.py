@@ -186,7 +186,7 @@ def play():
 
     run = True
     while run:
-        screen.blit(background, (0,0))  # yin yang background for an authentic fruit ninja experience
+        screen.blit(background, (0, 0))  
         click_pos = None
 
         for event in pygame.event.get():
@@ -222,51 +222,52 @@ def play():
             if pause_timer <= 0:
                 time_paused = False
 
+        # Update objects (skip the update if time is paused)
         if not time_paused:
-            # Update objects
             for fruit in fruits:
                 fruit.update(time_paused)
             bomb.update()
             ice.update()
 
-        
-            # Check for clicks and calculate combo
-            if click_pos:
-                combo_count = 0
-                for fruit in fruits:
-                    if detect_collision(fruit.x, fruit.y, FRUIT_SIZE, click_pos) and not fruit.sliced:
-                        fruit.sliced = True
-                        fruit.sliced_time = pygame.time.get_ticks()  # Store slice time
-                        combo_count += 1
-                
-                if combo_count > 0:
-                    score += combo_count  # Base points
-                    score += combo_count - 1  # Bonus for combos
-                
-                if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
+        # Check for clicks and calculate combo (works when time is paused as well)
+        if click_pos:
+            combo_count = 0
+            for fruit in fruits:
+                if detect_collision(fruit.x, fruit.y, FRUIT_SIZE, click_pos) and not fruit.sliced:
+                    fruit.sliced = True
+                    fruit.sliced_time = pygame.time.get_ticks()  # Store slice time
+                    combo_count += 1
+
+            if combo_count > 0:
+                score += combo_count  # Base points
+                score += combo_count - 1  # Bonus for combos
+
+            # Check collision with bomb and ice (even when paused)
+            if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
+                font = pygame.font.Font(None, 48)
+                game_over_text = font.render("Game Over!", True, RED)
+                screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                pygame.display.flip()
+                pygame.time.delay(2000)
+                run = False
+
+            if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
+                time_paused = True
+                pause_timer = clock.get_fps() * random.randint(3, 5)
+                ice.reset()
+
+        # Handle fruits falling off the screen (if paused, they still drop)
+        for fruit in fruits:
+            if fruit.y > HEIGHT and not fruit.sliced:
+                lives -= 1
+                if lives == 0:
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
                     run = False
-
-                if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
-                    time_paused = True
-                    pause_timer = clock.get_fps() * random.randint(3, 5)
-                    ice.reset()
-
-            for fruit in fruits:
-                if fruit.y > HEIGHT and not fruit.sliced:
-                    lives -= 1
-                    if lives == 0:
-                        font = pygame.font.Font(None, 48)
-                        game_over_text = font.render("Game Over!", True, RED)
-                        screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
-                        pygame.display.flip()
-                        pygame.time.delay(2000)
-                        run = False
-                    fruit.reset()
+                fruit.reset()
 
         # Draw objects
         for fruit in fruits:

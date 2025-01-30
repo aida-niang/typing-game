@@ -9,6 +9,8 @@ WIDTH, HEIGHT = 1200, 800  # Game window dimensions
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+GREEN = (0,128,0)
+BLUE = (12,152,186)
 FRUIT_SIZE = 100
 BOMB_SIZE = 100
 ICE_SIZE = 100
@@ -174,9 +176,61 @@ def draw_score_and_lives(score, lives):
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
 
+#Menu and difficulty
+def main_menu():
+    menu_run = True
+    selected_difficulty = None  # Stocke la difficulté choisie
+    font = pygame.font.Font(None, 48)
+
+    while menu_run:
+        screen.blit(background, (0,0))
+        title_text = font.render("Choisissez un niveau de difficulté", True, BLACK)
+        screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
+
+        # Options de difficulté
+        easy_text = font.render("1. Facile", True, BLACK)
+        medium_text = font.render("2. Moyen", True, BLACK)
+        hard_text = font.render("3. Difficile", True, BLACK)
+
+        screen.blit(easy_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
+        screen.blit(medium_text, (WIDTH // 2 - 100, HEIGHT // 2))
+        screen.blit(hard_text, (WIDTH // 2 - 100, HEIGHT // 2 + 50))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    selected_difficulty = "easy"
+                elif event.key == pygame.K_2:
+                    selected_difficulty = "medium"
+                elif event.key == pygame.K_3:
+                    selected_difficulty = "hard"
+
+        if selected_difficulty:
+            menu_run = False  # Quitter le menu et commencer le jeu
+
+    return selected_difficulty
+
+
 # Main game loop
-def play():
-    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(2)]  # Only 2 fruits with letters
+
+def play(difficulty):
+
+    # Définir le nombre initial de fruits en fonction du niveau
+    
+    if difficulty == "easy":
+        num_fruits = 2
+    elif difficulty == "medium":
+        num_fruits = 4
+    elif difficulty == "hard":
+        num_fruits = 6
+
+
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
     score = 0
@@ -283,4 +337,5 @@ def play():
     pygame.quit()
 
 if __name__ == "__main__":
-    play()
+    difficulty=main_menu()
+    play(difficulty)

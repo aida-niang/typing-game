@@ -186,9 +186,9 @@ def detect_collision(obj_x, obj_y, obj_size, click_pos):
     )
 
 # Draw score and lives
-def draw_score_lives_player(score, lives, player):
+def draw_score_lives_player(score, lives, player_name):
     font = pygame.font.Font(None, 36)
-    players_text = font.render(f"Player's name : {player}", True, WHITE)
+    players_text = font.render(f"Player's name : {player_name}", True, WHITE)
     score_text = font.render(f"Score: {score}", True, WHITE)
     lives_text = font.render(f"Lives: {lives}", True, RED)
     screen.blit(score_text, (10, 10))
@@ -242,6 +242,8 @@ def choose_difficulty():
         screen.blit(background, (0,0))
         title_text = font.render("Choose difficulty level", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
+        go_back_text = font.render("<--Go back", True, RED)  
+        screen.blit(go_back_text, (100, 100))
 
         # Options 
         easy_text = font.render("1. Easy", True, BLACK)
@@ -259,6 +261,8 @@ def choose_difficulty():
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE :
+                    choose_menu()
                 if event.key == pygame.K_1:
                     selected_difficulty = "easy"
                 elif event.key == pygame.K_2:
@@ -308,6 +312,8 @@ def get_player_name():
                         text = text[:-1]
                     else:
                         text += event.unicode
+                if event.key == pygame.K_ESCAPE :
+                    choose_difficulty()
 
 def update_score(score_file, player_name, score):# Read the existing scores from the file
     try:
@@ -460,7 +466,7 @@ def confirm_quit():
 # Main game loop
 def play(score_file):
     difficulty = choose_difficulty()
-    player = get_player_name()
+    player_name = get_player_name()
     
     # Définir le nombre initial de fruits en fonction du niveau
     if difficulty == "easy":
@@ -590,11 +596,11 @@ def play(score_file):
             fruit.draw()
         bomb.draw()
         ice.draw()
-        draw_score_lives_player(score, lives, player)
+        draw_score_lives_player(score, lives, player_name)
 
         pygame.display.flip()
         clock.tick(60)
-        update_score(score_file, player, score)
+        update_score(score_file, player_name, score)
 
     pygame.quit()
 try : 

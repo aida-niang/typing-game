@@ -2,11 +2,3 @@ amina: 9599
 aida: 6039
 yannis: 7070
 fdd: 0
-yaaa: 0
-fddd: 0
-hhu: 0
-ujj: 0
-yy: 0
-ggg: 0
-fff: 0
-aa: 0

@@ -60,6 +60,7 @@ ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 
 #images : boom and ice break
 bomb_image_sliced = pygame.image.load("images/bomb_slice.png")
+bomb_image_sliced = pygame.transform.scale(bomb_image_sliced, (BOMB_SIZE, BOMB_SIZE))
 # ice_image_sliced = pygame.image.load("images/")
 
 # Classes for game objects
@@ -117,6 +118,7 @@ class Bomb:
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1  # Ajout de la gravité
         self.letter = random.choice("QRSTU")
+        self.sliced = False
 
     def update(self, time_paused=False):  # Ajout de time_paused
         if not time_paused:
@@ -129,7 +131,13 @@ class Bomb:
             self.y += self.speed_y
 
     def draw(self):
-        screen.blit(bomb_image, (self.x, self.y))
+        if self.sliced:
+            screen.blit(bomb_image_sliced, (self.x,self.y))
+        else:
+            screen.blit(bomb_image, (self.x, self.y))
+
+
+        #Draw the letter on the bomb
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, WHITE)
         screen.blit(letter_text, (self.x + BOMB_SIZE // 2, self.y + BOMB_SIZE // 2))
@@ -492,6 +500,10 @@ def play(score_file):
                 
                 # Detect Bomb or Ice key press
                 if bomb.letter == key_pressed:
+                    #display boom
+                    screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
+                    pygame.display.flip()
+                    pygame.time.delay(500) #update display and leaving a bit of time to see the boom
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
@@ -536,6 +548,10 @@ def play(score_file):
 
             # Check collision with bomb and ice (even when paused)
             if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
+                screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
+                pygame.display.flip()
+                pygame.time.delay(500) #update display and leaving a bit of time to see the boom
+                
                 font = pygame.font.Font(None, 48)
                 game_over_text = font.render("Game Over!", True, RED)
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))

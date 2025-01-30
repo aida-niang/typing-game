@@ -176,7 +176,7 @@ def draw_score_and_lives(score, lives):
 
 # Main game loop
 def play():
-    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) for _ in range(2)]  # Only 2 fruits with letters
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(2)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
     score = 0

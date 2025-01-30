@@ -9,6 +9,8 @@ WIDTH, HEIGHT = 1200, 800  # Game window dimensions
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+GREEN = (0,128,0)
+BLUE = (12,152,186)
 FRUIT_SIZE = 100
 BOMB_SIZE = 100
 ICE_SIZE = 100
@@ -181,14 +183,14 @@ def main_menu():
     font = pygame.font.Font(None, 48)
 
     while menu_run:
-        screen.fill(WHITE)
-        title_text = font.render("Choisissez un niveau de difficulté", True, BLACK)
+        screen.blit(background, (0,0))
+        title_text = font.render("Choisissez un niveau de difficulté", True, WHITE)
         screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
 
         # Options de difficulté
-        easy_text = font.render("1. Facile", True, BLACK)
-        medium_text = font.render("2. Moyen", True, BLACK)
-        hard_text = font.render("3. Difficile", True, BLACK)
+        easy_text = font.render("Facile", True, GREEN)
+        medium_text = font.render("Moyen", True, BLUE)
+        hard_text = font.render("Difficile", True, RED)
 
         screen.blit(easy_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
         screen.blit(medium_text, (WIDTH // 2 - 100, HEIGHT // 2))

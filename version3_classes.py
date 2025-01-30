@@ -19,5 +19,3 @@ class Fruits :
         self.speed_x = speed_x
         self.speed_y = speed_y
         self.gravity = 0.1
-
-

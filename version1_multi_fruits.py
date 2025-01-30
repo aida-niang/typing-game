@@ -129,7 +129,7 @@ def play():
 
         for i in range(len(image_abc)) :
             space = 50  #space between two images
-            screen.blit(image_abc[i], (fruit_x + i * space, fruit_y)) #shiw the fruit_images
+            screen.blit(image_abc[i], (fruit_x + i * space, fruit_y + i * 2 * space)) #shiw the fruit_images
 
         screen.blit(bomb_image, (bomb_x, bomb_y))  #show the bomb image
 
@@ -143,7 +143,7 @@ def play():
             screen.blit(fruit_slice, (fruit_x, fruit_y)) #replace the full fruit by the sliced fruit
             sound_loser.play()
             pygame.time.wait(int(sound_loser.get_length() * 1000))
-            run = False     #if there is collision, the program is closed
+            run = False     #if there is collision, the program is closed 
         
 
         pygame.display.flip()

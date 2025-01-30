@@ -16,6 +16,10 @@ BOMB_SIZE = 100
 ICE_SIZE = 100
 SLICED_DISPLAY_TIME = 10  # Time to show sliced fruit before resetting
 
+#load sounds :
+sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
+sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
+
 # Initialize screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ninja Fruit")
@@ -40,6 +44,7 @@ sliced_fruit_images = {
 
 #background yin-yang
 background=pygame.image.load("images/background_yin.jpeg")
+background_ice = pygame.image.load("images/background_ice.jpg")
 background=background.convert()
 
 # Resize all fruit images
@@ -169,28 +174,67 @@ def detect_collision(obj_x, obj_y, obj_size, click_pos):
     )
 
 # Draw score and lives
-def draw_score_and_lives(score, lives):
+def draw_score_lives_player(score, lives, player):
     font = pygame.font.Font(None, 36)
+    players_text = font.render(f"Player's name : {player}", True, WHITE)
     score_text = font.render(f"Score: {score}", True, WHITE)
     lives_text = font.render(f"Lives: {lives}", True, RED)
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
 
-#Menu and difficulty
-def main_menu():
+#This function allow to write on pygame screen :
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    textrect = textobj.get_rect()
+    textrect.center = (x, y)
+    surface.blit(textobj, textrect)
+
+def show_menu():
+    screen.blit(background, (0,0))
+    font = pygame.font.Font(None, 48)
+    draw_text("--- Ninja Fruit ---", font, BLACK, screen, WIDTH// 2, HEIGHT// 4)
+    draw_text("1. Play", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 - 80)
+    draw_text("2. Scores", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 - 40)
+    draw_text("3. Delete scores", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    draw_text("4. Quit", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 + 40)
+    
+    pygame.display.update()
+
+def choose_menu():
+    score_file = "scores.txt"
+    while True:
+        show_menu()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                    play(score_file)
+                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                    view_scores(score_file)
+                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                    confirm_delete_scores(score_file)  
+                elif event.key == pygame.K_4 or event.key == pygame.K_KP4 or event.key == pygame.K_RETURN:
+                    confirm_quit()  # Call the confirmation dialog function 
+                else:
+                    print("Choose a valid option")
+
+
+def choose_difficulty():
     menu_run = True
     selected_difficulty = None  # Stocke la difficulté choisie
     font = pygame.font.Font(None, 48)
 
     while menu_run:
         screen.blit(background, (0,0))
-        title_text = font.render("Choisissez un niveau de difficulté", True, BLACK)
+        title_text = font.render("Choose difficulty level", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
 
-        # Options de difficulté
-        easy_text = font.render("1. Facile", True, BLACK)
-        medium_text = font.render("2. Moyen", True, BLACK)
-        hard_text = font.render("3. Difficile", True, BLACK)
+        # Options 
+        easy_text = font.render("1. Easy", True, BLACK)
+        medium_text = font.render("2. Midium", True, BLACK)
+        hard_text = font.render("3. Difficult", True, BLACK)
 
         screen.blit(easy_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
         screen.blit(medium_text, (WIDTH // 2 - 100, HEIGHT // 2))
@@ -215,13 +259,198 @@ def main_menu():
 
     return selected_difficulty
 
+def get_player_name():
+    input_box = pygame.Rect(0, 0, 200, 40) 
+    input_box.center = (WIDTH// 2, HEIGHT// 2) 
+    #input_box = pygame.Rect(WIDTH// 2 - 100, h // 2 - 20, 200, 40)
+    color_inactive = pygame.Color('lightskyblue3')
+    color_active = pygame.Color('dodgerblue2')
+    color = color_inactive
+    active = False
+    text = ''
+    font = pygame.font.Font(None, 32)
+
+    while True:
+        screen.fill(WHITE)
+        draw_text("Enter your name:", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+        pygame.draw.rect(screen, color, input_box, 2)
+        draw_text(text, font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if input_box.collidepoint(event.pos):
+                    active = True
+                    color = color_active
+                else:
+                    active = False
+                    color = color_inactive
+            if event.type == pygame.KEYDOWN:
+                if active:
+                    if event.key == pygame.K_RETURN:
+                        return text
+                    elif event.key == pygame.K_BACKSPACE:
+                        text = text[:-1]
+                    else:
+                        text += event.unicode
+
+def update_score(score_file, player_name, score):# Read the existing scores from the file
+    try:
+        with open(score_file, 'r', encoding='utf-8') as f:
+            scores = f.readlines()
+    except FileNotFoundError:
+        scores = []
+
+    player_found = False
+    for i, line in enumerate(scores):
+        name, player_score = line.strip().split(": ")
+        if name == player_name:
+            # If the player is found, update their score
+            new_score = int(player_score) + score
+            scores[i] = f"{name}: {new_score}\n"
+            player_found = True
+            break
+
+    # If the player is not found, add a new entry
+    if not player_found:
+        scores.append(f"{player_name}: {score}\n")
+
+    # Write the updated scores back to the file
+    with open(score_file, 'w', encoding='utf-8') as f:
+        f.writelines(scores)
+
+# Function to view the scores
+def view_scores(score_file):
+    font = pygame.font.Font(None, 48)
+    screen.fill(WHITE)
+    draw_text("Scores:", font, BLACK, screen, WIDTH// 2, 50)
+    
+    try:
+        with open(score_file, 'r', encoding='utf-8') as f:
+            scores = f.readlines()
+            if not scores:
+                draw_text("No scores available.", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+            else:
+                y_offset = 100
+                for score in scores:
+                    draw_text(score.strip(), font, BLACK, screen, WIDTH// 2, y_offset)
+                    y_offset += 40
+    except FileNotFoundError:
+        draw_text(f"Error: {score_file} not found.", font, RED, screen, WIDTH// 2, HEIGHT// 3)
+
+    draw_text("Press any key to return.", font, BLACK, screen, WIDTH// 2, HEIGHT- 50)
+    pygame.display.update()
+
+    waiting_for_key = True
+    while waiting_for_key:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                waiting_for_key = False
+
+# Function to display the delete scores confirmation screen
+def confirm_delete_scores(score_file):
+    font = pygame.font.Font(None, 48)
+    screen.fill(WHITE)
+    draw_text("Do you really want to delete all scores?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_y:  # User confirms delete
+                    with open(score_file, 'w', encoding='utf-8') as f:
+                        f.truncate(0)  # Empty the file
+                    screen.fill(WHITE)
+                    draw_text("All scores deleted!", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+                    pygame.display.update()
+                    pygame.time.delay(2000)  # Show message for 2 seconds
+                    return
+                elif event.key == pygame.K_n:  # User cancels delete
+                    screen.fill(WHITE)
+                    draw_text("Scores not deleted.", font, RED, screen, WIDTH// 2, HEIGHT// 2)
+                    pygame.display.update()
+                    pygame.time.delay(2000)  # Show message for 2 seconds
+                    return
+
+# Function to delete all scores
+def delete_scores(score_file):
+    print("Do you really want to delete all scores? (y/n): ")
+    confirm = input().strip().lower()  # Ask for confirmation from the user
+    
+    if confirm == 'y':
+        with open(score_file, 'w', encoding='utf-8') as f:
+            f.truncate(0)  # Empty the file
+        print("All scores deleted.")
+    elif confirm == 'n':
+        print("Scores not deleted.")
+    else:
+        print("Invalid choice. Please enter 'y' or 'n'.")
+
+# Function to display the delete scores confirmation screen
+def confirm_delete_scores(score_file):
+    font = pygame.font.Font(None, 48)
+    screen.fill(WHITE)
+    draw_text("Do you really want to delete all scores?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_y:  # User confirms delete
+                    with open(score_file, 'w', encoding='utf-8') as f:
+                        f.truncate(0)  # Empty the file
+                    screen.fill(WHITE)
+                    draw_text("All scores deleted!", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+                    pygame.display.update()
+                    pygame.time.delay(2000)  # Show message for 2 seconds
+                    return
+                elif event.key == pygame.K_n:  # User cancels delete
+                    screen.fill(WHITE)
+                    draw_text("Scores not deleted.", font, RED, screen, HEIGHT// 2, HEIGHT// 2)
+                    pygame.display.update()
+                    pygame.time.delay(2000)  # ShoWIDTHmessage for 2 seconds
+                    return
+                
+def confirm_quit():
+    font = pygame.font.Font(None, 48)
+    screen.fill(WHITE)
+    draw_text("Do you really want to quit?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_y:  # User confirms quit
+                    pygame.quit()
+                    exit()
+                elif event.key == pygame.K_n:  # User cancels quit
+                    return  # Exit the confirmation screen and return to the menu
+
 
 # Main game loop
-
-def play(difficulty):
-
-    # Définir le nombre initial de fruits en fonction du niveau
+def play(score_file):
+    difficulty = choose_difficulty()
+    player = get_player_name()
     
+    # Définir le nombre initial de fruits en fonction du niveau
     if difficulty == "easy":
         num_fruits = 2
     elif difficulty == "medium":
@@ -264,11 +493,16 @@ def play(difficulty):
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
+                    sound_loser.play()
+                    pygame.time.wait(int(sound_loser.get_length() * 1000))
                     run = False
+                    show_menu()
                 if ice.letter == key_pressed:
                     time_paused = True
+                    screen.blit(background_ice, (0, 0))
                     pause_timer = clock.get_fps() * random.randint(3, 5)
                     ice.reset()
+                    
 
         # Pause mechanics
         if time_paused:
@@ -303,10 +537,14 @@ def play(difficulty):
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                 pygame.display.flip()
                 pygame.time.delay(2000)
+                sound_loser.play()
+                pygame.time.wait(int(sound_loser.get_length() * 1000))
                 run = False
+                choose_menu()
 
             if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
                 time_paused = True
+                screen.blit(background_ice, (0,0))
                 pause_timer = clock.get_fps() * random.randint(3, 5)
                 ice.reset()
                 
@@ -321,7 +559,10 @@ def play(difficulty):
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
+                    sound_loser.play()
+                    pygame.time.wait(int(sound_loser.get_length() * 1000))
                     run = False
+                    choose_menu()
                 fruit.reset()
 
         # Draw objects
@@ -329,13 +570,15 @@ def play(difficulty):
             fruit.draw()
         bomb.draw()
         ice.draw()
-        draw_score_and_lives(score, lives)
+        draw_score_lives_player(score, lives, player)
 
         pygame.display.flip()
         clock.tick(60)
+        update_score(score_file, player, score)
 
     pygame.quit()
-
-if __name__ == "__main__":
-    difficulty=main_menu()
-    play(difficulty)
+try : 
+    if __name__ == "__main__":
+        choose_menu()
+except KeyboardInterrupt :
+    print(f"Exiting......")

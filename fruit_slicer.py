@@ -107,7 +107,7 @@ class Bomb:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1  # Ajout de la gravité
-        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.letter = random.choice("QRSTU")
 
     def update(self, time_paused=False):  # Ajout de time_paused
         if not time_paused:
@@ -139,7 +139,7 @@ class Ice:
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
-        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.letter = random.choice("VWXYZ")
 
     def update(self):
         self.x += self.speed_x
@@ -227,7 +227,7 @@ def play(difficulty):
     elif difficulty == "hard":
         num_fruits = 6
 
-    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) for _ in range(num_fruits)]  # Only 2 fruits with letters
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
     score = 0

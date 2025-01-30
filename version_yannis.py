@@ -1,212 +1,335 @@
 import pygame
 import random
-import string
 
+# Initialize Pygame
 pygame.init()
-#In order to control the speed of updating the images in pygame screen, we have to insert this function :
-clock = pygame.time.Clock()
 
-w = 800
-h = 500
+# Constants
+WIDTH, HEIGHT = 1200, 800  # Game window dimensions
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-BLACK = (0,0,0)
+BLACK = (0, 0, 0)
+FRUIT_SIZE = 100
+BOMB_SIZE = 100
+ICE_SIZE = 100
+SLICED_DISPLAY_TIME = 10  # Time to show sliced fruit before resetting
 
-screen = pygame.display.set_mode((w, h))
-pygame.display.set_caption('Ninja Fruit')
-screen.fill(WHITE)
+# Initialize screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Ninja Fruit")
+clock = pygame.time.Clock()
 
-fruit_image = pygame.image.load('fruits/pasteque.png')
-fruit_slice = pygame.image.load('fruits/pasteque_slice.png')
+# Load fruit images (Normal & Sliced)
+fruit_images = {
+    "apple": pygame.image.load("images/apple.png"),
+    "banana": pygame.image.load("images/banana.png"),
+    "orange": pygame.image.load("images/orange.png"),  
+    "pasteque": pygame.image.load("images/pasteque.png"),  
+    "strawberry": pygame.image.load("images/strawberry.png"), 
+}
 
-fruit_image = pygame.transform.scale(fruit_image, (50, 50))  # change the dimension of the image because, it is bigger than the screen size
-fruit_slice = pygame.transform.scale(fruit_slice, (50, 50))
+sliced_fruit_images = {
+    "apple": pygame.image.load("images/apple_slice.png"),
+    "banana": pygame.image.load("images/banana_slice.png"),
+    "orange": pygame.image.load("images/orange_slice.png"),
+    "pasteque": pygame.image.load("images/pasteque_slice.png"),
+    "strawberry": pygame.image.load("images/strawberry_slice.png"),
+}
 
-font = pygame.font.Font(None, 36)
+#background yin-yang
+background=pygame.image.load("images/background_yin.jpeg")
+background=background.convert()
 
+# Resize all fruit images
+for key in fruit_images:
+    fruit_images[key] = pygame.transform.scale(fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
+    sliced_fruit_images[key] = pygame.transform.scale(sliced_fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
 
+# Load and resize bomb & ice images
+bomb_image = pygame.image.load("images/bomb.png")
+ice_image = pygame.image.load("images/ice.png")
+bomb_image = pygame.transform.scale(bomb_image, (BOMB_SIZE, BOMB_SIZE))
+ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 
+# Classes for game objects
 class Fruit:
-    def __init__(self, image_path, image_sliced_path, letter, screen_width, screen_height):
-        self.image= pygame.image.load(image_path)
-        self.image_sliced= pygame.image.load(image_sliced_path)
-        self.image=pygame.transform.scale(self.image, (50, 50))
-        self.image_sliced=pygame.transform.scale(self.slice_image, (50, 50))
-        self.letter=random.choice(string.ascii_uppercase)
-        self.screen_width= screen_width
-        self.screen_height= screen_height
-        self.width, self.height = self.image.get_size()
-        self.reset_position()
-
-    def reset_position(self):
-        # Reset the fruit to a new random position and velocity.
-        self.x = random.randint(0, self.screen_width , self.width)
-        self.y = self.screen_height - self.height
-        self.speed_x = random.uniform(-1.0, 1.0)
-        self.speed_y = random.uniform(-10.0, -5.0)
+    def __init__(self, letter):
+        self.type = random.choice(list(fruit_images.keys()))  
+        self.letter = letter  # Add letter to each fruit
+        self.x = random.randint(FRUIT_SIZE // 2, WIDTH - FRUIT_SIZE // 2)
+        self.y = HEIGHT - FRUIT_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
+        self.sliced = False
+        self.sliced_time = 0 
 
-    def move(self):
-        # Update the position of the fruit based on its velocity and gravity.
-        self.speed_x = random.uniform(-1.0, 1.0)
-        self.speed_y = random.uniform(-10.0, -5.0)
-        gravity = 0.1
+    def update(self, time_paused):
+        if not time_paused:  # If not paused, apply regular gravity and movement
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
+        else:  # If time is paused, slow down the fruit's movement
+            self.speed_x *= 0.1  # Slow down horizontal movement
+            self.speed_y *= 0.1  # Slow down vertical movement
+            self.y += self.speed_y  # Only apply vertical movement for "slowed-down" effect
+
+        # If sliced, wait before resetting
+        if self.sliced and pygame.time.get_ticks() - self.sliced_time > SLICED_DISPLAY_TIME * 50:
+            self.reset()
+
+    def draw(self):
+        if self.sliced:
+            screen.blit(sliced_fruit_images[self.type], (self.x, self.y))  
+        else:
+            screen.blit(fruit_images[self.type], (self.x, self.y))  
+            
+        # Draw the letter on the fruit
+        font = pygame.font.Font(None, 36)
+        letter_text = font.render(self.letter, True, BLACK)
+        screen.blit(letter_text, (self.x + FRUIT_SIZE // 2, self.y + FRUIT_SIZE // 2))
+
+    def reset(self):
+        self.type = random.choice(list(fruit_images.keys()))  # New random fruit
+        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")  # Assign new random letter
+        self.x = random.randint(FRUIT_SIZE // 2, WIDTH - FRUIT_SIZE // 2)
+        self.y = HEIGHT - FRUIT_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
+        self.sliced = False  # Reset slice state
+
+class Bomb:
+    def __init__(self):
+        self.x = random.randint(0, WIDTH - BOMB_SIZE)
+        self.y = HEIGHT - BOMB_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
+        self.gravity = 0.1  # Ajout de la gravité
+        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    def update(self, time_paused=False):  # Ajout de time_paused
+        if not time_paused:
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
+        else:
+            self.speed_x *= 0.1  # Ralentir le mouvement horizontal
+            self.speed_y *= 0.1  # Ralentir la chute
+            self.y += self.speed_y
+
+    def draw(self):
+        screen.blit(bomb_image, (self.x, self.y))
+        font = pygame.font.Font(None, 36)
+        letter_text = font.render(self.letter, True, WHITE)
+        screen.blit(letter_text, (self.x + BOMB_SIZE // 2, self.y + BOMB_SIZE // 2))
+
+    def reset(self):
+        self.x = random.randint(0, WIDTH - BOMB_SIZE)
+        self.y = HEIGHT - BOMB_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
+
+
+class Ice:
+    def __init__(self):
+        self.x = random.randint(0, WIDTH - ICE_SIZE)
+        self.y = HEIGHT - ICE_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
+        self.gravity = 0.1
+        self.letter = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    def update(self):
         self.x += self.speed_x
         self.speed_y += self.gravity
         self.y += self.speed_y
 
+    def draw(self):
+        screen.blit(ice_image, (self.x, self.y))
+        # Draw the letter on the ice
+        font = pygame.font.Font(None, 36)
+        letter_text = font.render(self.letter, True, BLACK)
+        screen.blit(letter_text, (self.x + ICE_SIZE // 2, self.y + ICE_SIZE // 2))
 
-        if (self.x < 0 or self.x > self.screen_width - self.width or self.y > self.screen_height):
-            self.reset_position()
+    def reset(self):
+        self.x = random.randint(0, WIDTH - ICE_SIZE)
+        self.y = HEIGHT - ICE_SIZE
+        self.speed_x = random.uniform(-1, 1)
+        self.speed_y = random.randint(-12, -8)
 
+# Detect collisions
+def detect_collision(obj_x, obj_y, obj_size, click_pos):
+    if click_pos is None:
+        return False  # No click, no collision
+    return (
+        obj_x <= click_pos[0] <= obj_x + obj_size and
+        obj_y <= click_pos[1] <= obj_y + obj_size
+    )
 
-    def draw(self, screen):
-        if not self.sliced:
-            screen.blit(self.image, (self.x, self.y))
-            text = font.render(self.letter, True, BLACK)
-            text_rect = text.get_rect(center=(self.x + self.width // 2, self.y + self.height // 2))
-            screen.blit(text, text_rect)
-        else:
-            screen.blit(self.slice_image, (self.x, self.y))
+# Draw score and lives
+def draw_score_and_lives(score, lives):
+    font = pygame.font.Font(None, 36)
+    score_text = font.render(f"Score: {score}", True, BLACK)
+    lives_text = font.render(f"Lives: {lives}", True, RED)
+    screen.blit(score_text, (10, 10))
+    screen.blit(lives_text, (10, 50))
 
-    def slice(self):
-        """Couper le fruit."""
-        self.sliced = True
-        
+#Menu and difficulty
+def main_menu():
+    menu_run = True
+    selected_difficulty = None  # Stocke la difficulté choisie
+    font = pygame.font.Font(None, 48)
 
-    def draw_sliced(self, screen):
-        # Draw the sliced version of the fruit on the screen.
-        screen.blit(self.slice_image, (self.x, self.y))
+    while menu_run:
+        screen.fill(WHITE)
+        title_text = font.render("Choisissez un niveau de difficulté", True, BLACK)
+        screen.blit(title_text, (WIDTH // 2 - 250, HEIGHT // 4))
 
-    def get_position_and_size(self):
-        # Get the position and size of the fruit.
-        return (self.x, self.y), (self.width, self.height)  
+        # Options de difficulté
+        easy_text = font.render("1. Facile", True, BLACK)
+        medium_text = font.render("2. Moyen", True, BLACK)
+        hard_text = font.render("3. Difficile", True, BLACK)
+
+        screen.blit(easy_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
+        screen.blit(medium_text, (WIDTH // 2 - 100, HEIGHT // 2))
+        screen.blit(hard_text, (WIDTH // 2 - 100, HEIGHT // 2 + 50))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    selected_difficulty = "easy"
+                elif event.key == pygame.K_2:
+                    selected_difficulty = "medium"
+                elif event.key == pygame.K_3:
+                    selected_difficulty = "hard"
+
+        if selected_difficulty:
+            menu_run = False  # Quitter le menu et commencer le jeu
+
+    return selected_difficulty
+
+# Main game loop
+def play(difficulty):
+
+    # Définir le nombre initial de fruits en fonction du niveau
     
-# function that detects collisions
-def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
-    if not target_pos:
-        return False  
+    if difficulty == "easy":
+        num_fruits = 2
+    elif difficulty == "medium":
+        num_fruits = 4
+    elif difficulty == "hard":
+        num_fruits = 6
 
-    fruit_center = (fruit_pos[0] + fruit_size[0] // 2, fruit_pos[1] + fruit_size[1] // 2)
-    distance = ((fruit_center[0] - target_pos[0]) ** 2 + (fruit_center[1] - target_pos[1]) ** 2) ** 0.5 #the distance between the target and the image centers (sqrt((x2 - x1)² + (y2 - y1)²))
-    return distance <= target_radius + fruit_size[0] // 2  # law : we have collision between 2 circles if d <= R1 + R2
-
-
-def play():
-    screen_height = screen.get_height()
-    # Créer une liste de fruits
-    fruits = [Fruit('fruits/pasteque.png', 'fruits/pasteque_slice.png', w, h, screen_height) for _ in range(5)]
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) for _ in range(num_fruits)]  # Only 2 fruits with letters
+    bomb = Bomb()
+    ice = Ice()
+    score = 0
+    lives = 3
+    time_paused = False
+    pause_timer = 0
 
     run = True
     while run:
-        screen.fill(WHITE)
+        screen.blit(background, (0, 0))  
+        click_pos = None
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-
-            # Vérifier si une touche est pressée
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click_pos = pygame.mouse.get_pos()
             if event.type == pygame.KEYDOWN:
-                pressed_key = event.unicode.upper()  # Convertir la touche en majuscule
+                key_pressed = pygame.key.name(event.key).upper()  # Get the pressed key
                 for fruit in fruits:
-                    if not fruit.sliced and fruit.letter == pressed_key:
-                        print(f"Fruit {fruit.letter} coupé !")
-                        fruit.slice()  # Couper le fruit
+                    if fruit.letter == key_pressed and not fruit.sliced:
+                        fruit.sliced = True
+                        fruit.sliced_time = pygame.time.get_ticks()  # Store slice time
+                        score += 1  # Increase score when correct key is pressed
+                        break
+                
+                # Detect Bomb or Ice key press
+                if bomb.letter == key_pressed:
+                    font = pygame.font.Font(None, 48)
+                    game_over_text = font.render("Game Over!", True, RED)
+                    screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+                    run = False
+                if ice.letter == key_pressed:
+                    time_paused = True
+                    pause_timer = clock.get_fps() * random.randint(3, 5)
+                    ice.reset()
 
-        # Déplacer et dessiner chaque fruit
+        # Pause mechanics
+        if time_paused:
+            pause_timer -= 1
+            if pause_timer <= 0:
+                time_paused = False
+
+        # Update objects (skip the update if time is paused)
+        if not time_paused:
+            for fruit in fruits:
+                fruit.update(time_paused)
+            bomb.update()
+            ice.update()
+
+        # Check for clicks and calculate combo (works when time is paused as well)
+        if click_pos:
+            combo_count = 0
+            for fruit in fruits:
+                if detect_collision(fruit.x, fruit.y, FRUIT_SIZE, click_pos) and not fruit.sliced:
+                    fruit.sliced = True
+                    fruit.sliced_time = pygame.time.get_ticks()  # Store slice time
+                    combo_count += 1
+
+            if combo_count > 0:
+                score += combo_count  # Base points
+                score += combo_count - 1  # Bonus for combos
+
+            # Check collision with bomb and ice (even when paused)
+            if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
+                font = pygame.font.Font(None, 48)
+                game_over_text = font.render("Game Over!", True, RED)
+                screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                pygame.display.flip()
+                pygame.time.delay(2000)
+                run = False
+
+            if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
+                time_paused = True
+                pause_timer = clock.get_fps() * random.randint(3, 5)
+                ice.reset()
+
+        # Handle fruits falling off the screen (if paused, they still drop)
         for fruit in fruits:
-            fruit.move()
-            fruit.draw(screen)
+            if fruit.y > HEIGHT and not fruit.sliced:
+                lives -= 1
+                if lives == 0:
+                    font = pygame.font.Font(None, 48)
+                    game_over_text = font.render("Game Over!", True, RED)
+                    screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+                    run = False
+                fruit.reset()
+
+        # Draw objects
+        for fruit in fruits:
+            fruit.draw()
+        bomb.draw()
+        ice.draw()
+        draw_score_and_lives(score, lives)
 
         pygame.display.flip()
-        clock.tick(60)  # Limiter la fréquence d'images à 60 FPS
+        clock.tick(60)
 
     pygame.quit()
 
-
-try:
-    if __name__ == '__main__':
-        play()
-except KeyboardInterrupt:
-    print("Exiting...")
-
-
-# fruit_width, fruit_height = fruit_image.get_size()
-# fruit_x = random.randint(0,w) #Initial position of the image (bellow)
-# fruit_y = h - fruit_height
-# speed_x = 0.5  # displacement speed on x-axis
-# speed_y = random.randint(-10, -5)
-# gravity = 0.1
-
-# #The target = circle (we can change it)
-# target_pos = None  
-# target_radius = 20
-
-# function that detects collisions
-# def detect_collision(fruit_pos, fruit_size, target_pos, target_radius):
-#     if not target_pos:
-#         return False  
-
-#     fruit_center = (fruit_pos[0] + fruit_size[0] // 2, fruit_pos[1] + fruit_size[1] // 2)
-#     distance = ((fruit_center[0] - target_pos[0]) ** 2 + (fruit_center[1] - target_pos[1]) ** 2) ** 0.5 #the distance between the target and the image centers (sqrt((x2 - x1)² + (y2 - y1)²))
-#     return distance <= target_radius + fruit_size[0] // 2  # law : we have collision between 2 circles if d <= R1 + R2
-
-# def show_fruit_again() :
-#     global fruit_x, fruit_y, speed_x, speed_y
-#     fruit_x = random.randint(0,w)  #Initial position of the image (bellow)
-#     fruit_y = h - fruit_height
-#     speed_x = random.randint(-1,1)  # displacement speed on x-axis
-#     speed_y = random.randint(-10, -5)
-#     gravity = 0.1
-#     fruit_x += speed_x #displacement of the fruit image in the x+
-#     speed_y += gravity # (v(y) = v0 + g*t) 
-#     fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
-
-
-# def play():
-#     global fruit_x, fruit_y, target_pos, speed_x, speed_y, fruit_image  #in order to change thel later
-#     # Here I added speed_y as a global variable because it is affected by the gravity
-#     run = True
-
-#     while run:
-#         screen.fill(WHITE) #clean the screen at each step (when updating the screen)
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 run = False
-
-#             if event.type == pygame.KEYDOWN:
-#                 if event.key == pygame.K_p :
-#                     target_pos = pygame.mouse.get_pos()
-#                     print(f"The postions of the target is : {target_pos}")
-        
-#         fruit_x += speed_x #displacement of the fruit image in the x+
-#         speed_y += gravity # (v(y) = v0 + g*t) 
-#         fruit_y += speed_y  # (y(t) = y0 + vy*t + 1/2 g*t²) 
-#         #Here I used gravitational law : we have integrated the second law of Newton sum(F) = m*a
-#         if (fruit_x < fruit_width // 2) or (fruit_x > w - fruit_width) or (fruit_y > h) :
-#             show_fruit_again()
-
-
-#         screen.blit(fruit_image, (fruit_x, fruit_y)) #shiw the fruit_image
-
-
-#         if target_pos:
-#             pygame.draw.circle(screen, RED, target_pos, target_radius) #draw the circle when we press the choosen key (here it is 'p')
-
-
-#         if detect_collision((fruit_x, fruit_y), (fruit_width, fruit_height), target_pos, target_radius):
-#             print("Collision detected!")
-#             screen.blit(fruit_slice, (fruit_x, fruit_y)) #replace the full fruit by the sliced fruit
-#             run = False     #if there is collision, the program is closed
-
-#         pygame.display.flip()
-#         clock.tick(60) #the unit is FPS = frame per seconde 
-
-#     pygame.quit()
-
-# try :
-#     if __name__ == '__main__':
-#         play()
-# except KeyboardInterrupt :
-#     print(f"Exiting ....... ")
+if __name__ == "__main__":
+    difficulty=main_menu()
+    play(difficulty)

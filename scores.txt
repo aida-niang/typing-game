@@ -1,2 +1,4 @@
 amina: 9599
 aida: 6039
+yannis: 7070
+fdd: 0

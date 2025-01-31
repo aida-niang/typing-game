@@ -6,7 +6,7 @@ import os
 pygame.init()
 
 # Constants
-WIDTH, HEIGHT = 1200, 800  # Game window dimensions
+WIDTH, HEIGHT = 1200, 500  # Game window dimensions
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
@@ -281,27 +281,53 @@ class Ice:
         self.gravity = 0.1
         self.letter = random.choice("VWXYZ")
         self.sliced = False
+        self.active = True
+        self.reset_time = None 
 
     def update(self):
-        self.x += self.speed_x
-        self.speed_y += self.gravity
-        self.y += self.speed_y
+        if self.active:
+            self.x += self.speed_x
+            self.speed_y += self.gravity
+            self.y += self.speed_y
+
+        if not self.active and self.reset_time is not None:
+            if pygame.time.get_ticks() - self.reset_time >= 4000:
+                self.relaunch()
 
     def draw(self):
-        if self.sliced:
-            screen.blit(ice_image_sliced, (self.x,self.y))
-        else:
-            screen.blit(ice_image, (self.x, self.y))
-        # Draw the letter on the ice
-        font = pygame.font.Font(None, 36)
-        letter_text = font.render(self.letter, True, BLACK)
-        screen.blit(letter_text, (self.x + ICE_SIZE // 2, self.y + ICE_SIZE // 2))
+        if self.active:
+            if self.sliced:
+                scaled_broken_ice = pygame.transform.scale(ice_image_sliced, (WIDTH, HEIGHT))
+                screen.blit(ice_image_sliced, (0,0))
+            else:
+                screen.blit(ice_image, (self.x, self.y))
+                font = pygame.font.Font(None, 36)
+                letter_text= font.render(self.letter, True, BLACK)
+                screen.blit(letter_text, (self.x + ICE_SIZE //4, self.y + ICE_SIZE //4))
+        # if self.sliced:
+        #     screen.blit(ice_image_sliced, (self.x,self.y))
+        # else:
+        #     screen.blit(ice_image, (self.x, self.y))
+        # # Draw the letter on the ice
+        # font = pygame.font.Font(None, 36)
+        # letter_text = font.render(self.letter, True, BLACK)
+        # screen.blit(letter_text, (self.x + ICE_SIZE // 2, self.y + ICE_SIZE // 2))
 
     def reset(self):
+        self.active = False
+        self.sliced = False
+        self.reset_time = pygame.time.get_ticks()
+
+    def relaunch(self):    
         self.x = random.randint(0, WIDTH - ICE_SIZE)
-        self.y = HEIGHT - ICE_SIZE
+        self.y = HEIGHT - ICE_SIZE + 200
         self.speed_x = random.uniform(-1, 1)
         self.speed_y = random.randint(-12, -8)
+        self.letter = random.choice("VWXYZ")
+        self.sliced = False
+        self.active = True
+        self.reset_time = None
+        #self.visible = True
 
 # Detect collisions
 def detect_collision(obj_x, obj_y, obj_size, click_pos):
@@ -624,19 +650,22 @@ def play(difficulty):
                     choose_menu()
                 
                 if ice.letter == key_pressed:
-                    # ice_surface=background_ice.copy()
-                    # ice_surface.set_alpha(80) #adding a transparency effect so the user can still see the fruits
-                    # screen.blit(ice_surface, (0, 0))
-                    # pygame.display.flip()
-                    # pygame.time.delay(30)
+                #     # ice_surface=background_ice.copy()
+                #     # ice_surface.set_alpha(80) #adding a transparency effect so the user can still see the fruits
+                #     # screen.blit(ice_surface, (0, 0))
+                #     # pygame.display.flip()
+                #     # pygame.time.delay(30)
                     time_paused = True
                     screen.blit(ice_image_sliced, (ice.x, ice.y))
                     pygame.display.flip()
                     pause_timer = clock.get_fps() * random.randint(3, 5)
                     pygame.time.delay(int(pause_timer))
                     ice.reset()
+                
 
-                    
+
+
+                                    
 
         # Pause mechanics
         if time_paused:
@@ -681,7 +710,7 @@ def play(difficulty):
 
             if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
                 time_paused = True
-                screen.blit(background_ice, (0,0))
+                screen.blit(ice_image_sliced, (ice.x,ice.y))
                 pygame.display.flip()
                 pause_timer = clock.get_fps() * random.randint(3, 5)
                 pygame.time.delay(int(pause_timer))

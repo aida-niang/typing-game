@@ -533,7 +533,10 @@ def play(score_file):
                     # pygame.display.flip()
                     # pygame.time.delay(30)
                     time_paused = True
+                    screen.blit(background_ice, (0,0))
+                    pygame.display.flip()
                     pause_timer = clock.get_fps() * random.randint(3, 5)
+                    pygame.time.delay(int(pause_timer))
                     ice.reset()
 
                     

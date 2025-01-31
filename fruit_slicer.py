@@ -17,8 +17,8 @@ ICE_SIZE = 100
 SLICED_DISPLAY_TIME = 10  # Time to show sliced fruit before resetting
 
 #load sounds :
-sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
-sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
+sound_start = pygame.mixer.Sound('sounds/game.wav')
+sound_end = pygame.mixer.Sound('sounds/you_lost.wav')
 
 # Initialize screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -479,7 +479,6 @@ def play(score_file):
     elif difficulty == "hard":
         num_fruits = 6
 
-
     fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
@@ -491,9 +490,10 @@ def play(score_file):
     frozen_start = 0
     frozen_duration = 0
     run = True
+    sound_start.play()
+
     while run:
-        screen.blit(background, (0, 0))  
-        
+        screen.blit(background, (0, 0))         
         click_pos = None
 
         for event in pygame.event.get():
@@ -521,8 +521,8 @@ def play(score_file):
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_loser.play()
-                    pygame.time.wait(int(sound_loser.get_length() * 1000))
+                    sound_end.play()
+                    pygame.time.wait(int(sound_end.get_length() * 1000))
                     run = False
                     show_menu()
                 
@@ -570,16 +570,15 @@ def play(score_file):
             # Check collision with bomb and ice (even when paused)
             if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
                 screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
+                sound_start.stop()
                 pygame.display.flip()
-                pygame.time.delay(500) #update display and leaving a bit of time to see the boom
-                
+                pygame.time.delay(500) #update display and leaving a bit of time to see the boom    
                 font = pygame.font.Font(None, 48)
                 game_over_text = font.render("Game Over!", True, RED)
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                 pygame.display.flip()
                 pygame.time.delay(2000)
-                #sound_loser.play()
-                #pygame.time.wait(int(sound_loser.get_length() * 1000))
+                sound_end.play()
                 run = False
                 choose_menu()
 
@@ -597,13 +596,13 @@ def play(score_file):
             if fruit.y > HEIGHT and not fruit.sliced:
                 lives -= 1
                 if lives == 0:
+                    sound_start.stop()
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_loser.play()
-                    pygame.time.wait(int(sound_loser.get_length() * 1000))
+                    sound_end.play()
                     run = False
                     choose_menu()
                 fruit.reset()

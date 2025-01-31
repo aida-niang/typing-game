@@ -61,7 +61,8 @@ ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 #images : boom and ice break
 bomb_image_sliced = pygame.image.load("images/bomb_slice.png")
 bomb_image_sliced = pygame.transform.scale(bomb_image_sliced, (BOMB_SIZE, BOMB_SIZE))
-# ice_image_sliced = pygame.image.load("images/")
+ice_image_sliced = pygame.image.load("images/ice_sliced.png")
+ice_image_sliced = pygame.transform.scale(ice_image_sliced, (ICE_SIZE, ICE_SIZE))
 
 # Classes for game objects
 class Fruit:
@@ -157,6 +158,7 @@ class Ice:
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
         self.letter = random.choice("VWXYZ")
+        self.sliced = False
 
     def update(self):
         self.x += self.speed_x
@@ -164,7 +166,10 @@ class Ice:
         self.y += self.speed_y
 
     def draw(self):
-        screen.blit(ice_image, (self.x, self.y))
+        if self.sliced:
+            screen.blit(ice_image_sliced, (self.x,self.y))
+        else:
+            screen.blit(ice_image, (self.x, self.y))
         # Draw the letter on the ice
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
@@ -533,7 +538,10 @@ def play(score_file):
                     # pygame.display.flip()
                     # pygame.time.delay(30)
                     time_paused = True
+                    screen.blit(ice_image_sliced, (ice.x, ice.y))
+                    pygame.display.flip()
                     pause_timer = clock.get_fps() * random.randint(3, 5)
+                    pygame.time.delay(int(pause_timer))
                     ice.reset()
 
                     

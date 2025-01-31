@@ -1,4 +1,18 @@
-mm: 0
+<<<<<<< HEAD
+amina: 9799
+aida: 6130
+=======
+amina: 10044
+aida: 6039
+>>>>>>> 5585143e172d1c753937e400fc65b14f9ee9acb1
+yannis: 98915
+ss: 1643
+mm: 284
 a: 0
-amina: 4901
-aa: 0
+<<<<<<< HEAD
+j: 0
+Aida: 15
+: 0
+=======
+j: 0ami: 0
+>>>>>>> 5585143e172d1c753937e400fc65b14f9ee9acb1

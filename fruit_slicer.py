@@ -17,6 +17,9 @@ BOMB_SIZE = 100
 ICE_SIZE = 100
 SLICED_DISPLAY_TIME = 10  # Time to show sliced fruit before resetting
 
+#load sounds :
+sound_start = pygame.mixer.Sound('sounds/game.wav')
+sound_end = pygame.mixer.Sound('sounds/you_lost.wav')
 # Font setup
 font_game = pygame.font.Font("fonts/arcade.ttf", 18)
 
@@ -83,6 +86,8 @@ ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 #images : boom and ice break
 bomb_image_sliced = pygame.image.load("images/bomb_slice.png")
 bomb_image_sliced = pygame.transform.scale(bomb_image_sliced, (BOMB_SIZE, BOMB_SIZE))
+ice_image_sliced = pygame.image.load("images/ice_sliced.png")
+ice_image_sliced = pygame.transform.scale(ice_image_sliced, (ICE_SIZE, ICE_SIZE))
 # ice_image_sliced = pygame.image.load("images/")
 
 def loading_screen():
@@ -273,6 +278,7 @@ class Ice:
         self.speed_y = random.randint(-12, -8)
         self.gravity = 0.1
         self.letter = random.choice("VWXYZ")
+        self.sliced = False
 
     def update(self):
         self.x += self.speed_x
@@ -280,7 +286,10 @@ class Ice:
         self.y += self.speed_y
 
     def draw(self):
-        screen.blit(ice_image, (self.x, self.y))
+        if self.sliced:
+            screen.blit(ice_image_sliced, (self.x,self.y))
+        else:
+            screen.blit(ice_image, (self.x, self.y))
         # Draw the letter on the ice
         font = pygame.font.Font(None, 36)
         letter_text = font.render(self.letter, True, BLACK)
@@ -565,10 +574,7 @@ def play(difficulty):
     else:
         num_fruits = 4  # Par défaut, choisir une difficulté "medium"
 
-    # Maintenant, on peut utiliser num_fruits pour créer les fruits
-    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]
-    # Le reste de ta fonction continue ici...
-
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
     score = 0
@@ -579,9 +585,10 @@ def play(difficulty):
     frozen_start = 0
     frozen_duration = 0
     run = True
+    sound_start.play()
+
     while run:
-        screen.blit(background, (0, 0))  
-        
+        screen.blit(background, (0, 0))         
         click_pos = None
 
         for event in pygame.event.get():
@@ -609,8 +616,8 @@ def play(difficulty):
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_loser.play()
-                    pygame.time.wait(int(sound_loser.get_length() * 1000))
+                    sound_end.play()
+                    pygame.time.wait(int(sound_end.get_length() * 1000))
                     run = False
                     choose_menu()
                 
@@ -621,7 +628,10 @@ def play(difficulty):
                     # pygame.display.flip()
                     # pygame.time.delay(30)
                     time_paused = True
+                    screen.blit(ice_image_sliced, (ice.x, ice.y))
+                    pygame.display.flip()
                     pause_timer = clock.get_fps() * random.randint(3, 5)
+                    pygame.time.delay(int(pause_timer))
                     ice.reset()
 
                     
@@ -655,16 +665,15 @@ def play(difficulty):
             # Check collision with bomb and ice (even when paused)
             if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
                 screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
+                sound_start.stop()
                 pygame.display.flip()
-                pygame.time.delay(500) #update display and leaving a bit of time to see the boom
-                
+                pygame.time.delay(500) #update display and leaving a bit of time to see the boom    
                 font = pygame.font.Font(None, 48)
                 game_over_text = font.render("Game Over!", True, RED)
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                 pygame.display.flip()
                 pygame.time.delay(2000)
-                #sound_loser.play()
-                #pygame.time.wait(int(sound_loser.get_length() * 1000))
+                sound_end.play()
                 run = False
                 choose_menu()
 
@@ -682,13 +691,13 @@ def play(difficulty):
             if fruit.y > HEIGHT and not fruit.sliced:
                 lives -= 1
                 if lives == 0:
+                    sound_start.stop()
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_loser.play()
-                    pygame.time.wait(int(sound_loser.get_length() * 1000))
+                    sound_end.play()
                     run = False
                     choose_menu()
 

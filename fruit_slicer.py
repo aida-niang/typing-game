@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -16,14 +17,40 @@ BOMB_SIZE = 100
 ICE_SIZE = 100
 SLICED_DISPLAY_TIME = 10  # Time to show sliced fruit before resetting
 
-#load sounds :
-sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
-sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
+# Font setup
+font_game = pygame.font.Font("fonts/arcade.ttf", 18)
 
 # Initialize screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ninja Fruit")
 clock = pygame.time.Clock()
+
+#Load background 
+background=pygame.image.load("images/background_yin.jpeg")
+background_ice = pygame.image.load("images/background_ice.jpg").convert_alpha()
+background=background.convert()
+start_screen_bg = pygame.image.load("images/start.webp")
+start_screen_bg = pygame.transform.scale(start_screen_bg, (WIDTH, HEIGHT))
+
+#load sounds :
+sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
+sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
+
+#load GIF frames
+def load_gif_frames(folder_path):
+    frames = []
+    for filename in sorted(os.listdir(folder_path)):
+        if filename.endswith(".png"):
+            # Load GIF as frames (assuming a single frame per gif in the folder)
+            frame = pygame.image.load(os.path.join(folder_path, filename))
+            frame = pygame.transform.scale(frame, (200, 50))  # Adjust size if needed
+            frames.append(frame)
+    return frames
+
+loading_frames = load_gif_frames("images/loading")
+easy_gif_frames = load_gif_frames("images/easy")
+medium_gif_frames = load_gif_frames("images/medium")
+hard_gif_frames = load_gif_frames("images/hard")
 
 # Load fruit images (Normal & Sliced)
 fruit_images = {
@@ -42,11 +69,6 @@ sliced_fruit_images = {
     "strawberry": pygame.image.load("images/strawberry_slice.png"),
 }
 
-#background yin-yang
-background=pygame.image.load("images/background_yin.jpeg")
-background_ice = pygame.image.load("images/background_ice.jpg").convert_alpha()
-background=background.convert()
-
 # Resize all fruit images
 for key in fruit_images:
     fruit_images[key] = pygame.transform.scale(fruit_images[key], (FRUIT_SIZE, FRUIT_SIZE))
@@ -62,6 +84,100 @@ ice_image = pygame.transform.scale(ice_image, (ICE_SIZE, ICE_SIZE))
 bomb_image_sliced = pygame.image.load("images/bomb_slice.png")
 bomb_image_sliced = pygame.transform.scale(bomb_image_sliced, (BOMB_SIZE, BOMB_SIZE))
 # ice_image_sliced = pygame.image.load("images/")
+
+def loading_screen():
+    frame_index = 0
+    clock = pygame.time.Clock()
+    start_time = pygame.time.get_ticks()
+
+    running = True
+    while running:
+        screen.blit(start_screen_bg, (0, 0))
+
+        # Display text "Loading..."
+        font = font_game
+        loading_text = font.render("Loading...", True, WHITE)
+        screen.blit(loading_text, (500, 700))
+
+        # Display animation gif
+        screen.blit(loading_frames[frame_index], (480, 730))
+        frame_index = (frame_index + 1) % len(loading_frames)  # Change frame
+
+        pygame.display.flip()
+        clock.tick(10)  # speed (~10 FPS)
+
+        # Stop after 3 seconds
+        if pygame.time.get_ticks() - start_time > 3000:
+            running = False
+
+        # Handle events (close window)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+def choose_menu(): 
+    score_file = "scores.txt"
+    frame_index_easy = 0
+    frame_index_medium = 0
+    frame_index_hard = 0
+    clock = pygame.time.Clock()
+
+    # Define the position and size of the easy, medium, and hard difficulty areas
+    easy_rect = pygame.Rect(50, 100, 200, 200)  # (x, y, width, height)
+    medium_rect = pygame.Rect(50, 200, 200, 200)
+    hard_rect = pygame.Rect(50, 300, 200, 200)
+
+    # Display difficulty options with animations
+    while True:
+        screen.blit(background, (0, 0))
+
+        # Display animation gif
+        screen.blit(easy_gif_frames[frame_index_easy], (50, 100))
+        screen.blit(medium_gif_frames[frame_index_medium], (50, 200))
+        screen.blit(hard_gif_frames[frame_index_hard], (50, 300))
+
+        # Change frames for GIF animation
+        frame_index_easy = (frame_index_easy + 1) % len(easy_gif_frames)
+        frame_index_medium = (frame_index_medium + 1) % len(medium_gif_frames)
+        frame_index_hard = (frame_index_hard + 1) % len(hard_gif_frames)
+
+        pygame.display.flip()
+        clock.tick(10)  # speed of the GIFs
+
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            #Keyboard input
+            if event.type == pygame.KEYDOWN:
+                # Check for keyboard inputs for difficulties
+                if event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                    play('easy')  # Start game on easy mode
+                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                    play('medium')  # Start game on medium mode
+                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                    play('hard')  # Start game on hard mode
+                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                    view_scores(score_file) 
+                elif event.key == pygame.K_4 or event.key == pygame.K_KP4 or event.key == pygame.K_RETURN:
+                    confirm_quit()  # Call the confirmation dialog function 
+
+            # Mousse input
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left mouse button
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                    # Check if the click was inside the "Easy" difficulty area
+                    if easy_rect.collidepoint(mouse_x, mouse_y):
+                        play('easy')  # Start game on easy mode
+                    elif medium_rect.collidepoint(mouse_x, mouse_y):
+                        play('medium')  # Start game on medium mode
+                    elif hard_rect.collidepoint(mouse_x, mouse_y):
+                        play('hard')  # Start game on hard mode
+
 
 # Classes for game objects
 class Fruit:
@@ -200,38 +316,6 @@ def draw_text(text, font, color, surface, x, y):
     textrect = textobj.get_rect()
     textrect.center = (x, y)
     surface.blit(textobj, textrect)
-
-def show_menu():
-    screen.blit(background, (0,0))
-    font = pygame.font.Font(None, 48)
-    draw_text("--- Ninja Fruit ---", font, BLACK, screen, WIDTH// 2, HEIGHT// 4)
-    draw_text("1. Play", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 - 80)
-    draw_text("2. Scores", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 - 40)
-    draw_text("3. Delete scores", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
-    draw_text("4. Quit", font, BLACK, screen, WIDTH// 2, HEIGHT// 2 + 40)
-    
-    pygame.display.update()
-
-def choose_menu():
-    score_file = "scores.txt"
-    while True:
-        show_menu()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1 or event.key == pygame.K_KP1:
-                    play(score_file)
-                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                    view_scores(score_file)
-                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                    confirm_delete_scores(score_file)  
-                elif event.key == pygame.K_4 or event.key == pygame.K_KP4 or event.key == pygame.K_RETURN:
-                    confirm_quit()  # Call the confirmation dialog function 
-                else:
-                    print("Choose a valid option")
-
 
 def choose_difficulty():
     menu_run = True
@@ -467,20 +551,24 @@ def confirm_quit():
 
 
 # Main game loop
-def play(score_file):
-    difficulty = choose_difficulty()
+def play(difficulty):
+    score_file = 'scores.txt'
     player_name = get_player_name()
-    
-    # Définir le nombre initial de fruits en fonction du niveau
+
+    # Définir num_fruits en fonction de la difficulté
     if difficulty == "easy":
         num_fruits = 2
     elif difficulty == "medium":
-        num_fruits = 4
-    elif difficulty == "hard":
         num_fruits = 6
+    elif difficulty == "hard":
+        num_fruits = 10
+    else:
+        num_fruits = 4  # Par défaut, choisir une difficulté "medium"
 
+    # Maintenant, on peut utiliser num_fruits pour créer les fruits
+    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]
+    # Le reste de ta fonction continue ici...
 
-    fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()
     ice = Ice()
     score = 0
@@ -524,7 +612,7 @@ def play(score_file):
                     sound_loser.play()
                     pygame.time.wait(int(sound_loser.get_length() * 1000))
                     run = False
-                    show_menu()
+                    choose_menu()
                 
                 if ice.letter == key_pressed:
                     # ice_surface=background_ice.copy()
@@ -603,6 +691,7 @@ def play(score_file):
                     pygame.time.wait(int(sound_loser.get_length() * 1000))
                     run = False
                     choose_menu()
+
                 fruit.reset()
 
         # Draw objects
@@ -619,6 +708,8 @@ def play(score_file):
     pygame.quit()
 try : 
     if __name__ == "__main__":
-        choose_menu()
+        loading_screen()  # Show loading screen next
+        choose_menu()  # Show start screen first
+
 except KeyboardInterrupt :
     print(f"Exiting......")

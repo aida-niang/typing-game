@@ -1,7 +1,9 @@
 amina: 9799
-aida: 6039
+aida: 6130
 yannis: 98915
 ss: 1643
 mm: 284
 a: 0
 j: 0
+Aida: 15
+: 0

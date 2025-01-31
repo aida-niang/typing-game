@@ -32,12 +32,9 @@ clock = pygame.time.Clock()
 background=pygame.image.load("images/background_yin.jpeg")
 background_ice = pygame.image.load("images/background_ice.jpg").convert_alpha()
 background=background.convert()
-start_screen_bg = pygame.image.load("images/start.webp")
+start_screen_bg = pygame.image.load("images/start.png")
 start_screen_bg = pygame.transform.scale(start_screen_bg, (WIDTH, HEIGHT))
 
-#load sounds :
-sound_winner = pygame.mixer.Sound('sounds/You_Win_Perfect.wav')
-sound_loser = pygame.mixer.Sound('sounds/you_lost.wav')
 
 #load GIF frames
 def load_gif_frames(folder_path):
@@ -46,7 +43,6 @@ def load_gif_frames(folder_path):
         if filename.endswith(".png"):
             # Load GIF as frames (assuming a single frame per gif in the folder)
             frame = pygame.image.load(os.path.join(folder_path, filename))
-            frame = pygame.transform.scale(frame, (200, 50))  # Adjust size if needed
             frames.append(frame)
     return frames
 
@@ -54,6 +50,7 @@ loading_frames = load_gif_frames("images/loading")
 easy_gif_frames = load_gif_frames("images/easy")
 medium_gif_frames = load_gif_frames("images/medium")
 hard_gif_frames = load_gif_frames("images/hard")
+
 
 # Load fruit images (Normal & Sliced)
 fruit_images = {
@@ -128,6 +125,10 @@ def choose_menu():
     frame_index_hard = 0
     clock = pygame.time.Clock()
 
+    font = font_game
+    loading_text = font.render("Start playing...", True, WHITE)
+    screen.blit(loading_text, (500, 700))
+
     # Define the position and size of the easy, medium, and hard difficulty areas
     easy_rect = pygame.Rect(50, 100, 200, 200)  # (x, y, width, height)
     medium_rect = pygame.Rect(50, 200, 200, 200)
@@ -139,8 +140,9 @@ def choose_menu():
 
         # Display animation gif
         screen.blit(easy_gif_frames[frame_index_easy], (50, 100))
-        screen.blit(medium_gif_frames[frame_index_medium], (50, 200))
-        screen.blit(hard_gif_frames[frame_index_hard], (50, 300))
+        screen.blit(medium_gif_frames[frame_index_medium], (100, 200))
+        screen.blit(hard_gif_frames[frame_index_hard], (150, 300))
+
 
         # Change frames for GIF animation
         frame_index_easy = (frame_index_easy + 1) % len(easy_gif_frames)

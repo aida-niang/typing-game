@@ -14,6 +14,7 @@ pygame.mixer.init()
 #load sounds :
 sound_start = pygame.mixer.Sound('assets/sounds/game.wav')
 sound_end = pygame.mixer.Sound('assets/sounds/you_lost.wav')
+sound_start.play()
 
 # Font setup
 font_game = pygame.font.Font("assets/fonts/arcade.ttf", 18)
@@ -421,7 +422,7 @@ def play(difficulty):
     frozen_start = 0
     frozen_duration = 0
     run = True
-    sound_start.play()
+    
 
     while run:
         screen.blit(background, (0, 0))         
@@ -443,6 +444,8 @@ def play(difficulty):
                 
                 # Detect Bomb or Ice key press
                 if bomb.letter == key_pressed:
+                    sound_end.play()
+                    pygame.time.wait(int(sound_end.get_length() * 1000))
                     #display boom
                     screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
                     pygame.display.flip()
@@ -452,8 +455,6 @@ def play(difficulty):
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_end.play()
-                    pygame.time.wait(int(sound_end.get_length() * 1000))
                     run = False
                     choose_menu()
                 
@@ -498,8 +499,9 @@ def play(difficulty):
 
             # Check collision with bomb and ice (even when paused)
             if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
-                screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
                 sound_start.stop()
+                sound_end.play()
+                screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
                 pygame.display.flip()
                 pygame.time.delay(500) #update display and leaving a bit of time to see the boom    
                 font = pygame.font.Font(None, 48)
@@ -507,7 +509,6 @@ def play(difficulty):
                 screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                 pygame.display.flip()
                 pygame.time.delay(2000)
-                sound_end.play()
                 run = False
                 choose_menu()
 
@@ -526,12 +527,12 @@ def play(difficulty):
                 lives -= 1
                 if lives == 0:
                     sound_start.stop()
+                    sound_end.play()
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
                     pygame.display.flip()
                     pygame.time.delay(2000)
-                    sound_end.play()
                     run = False
                     choose_menu()
 

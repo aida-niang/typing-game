@@ -1,3 +1,4 @@
+# In this file, we have defined the different parameters/constants/paths
 # Screen dimensions
 WIDTH, HEIGHT = 1400, 800
 

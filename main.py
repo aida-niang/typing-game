@@ -1,3 +1,4 @@
+#This file is the principal one, it is the one to execute 
 import pygame
 from game import play, choose_menu, loading_screen
 

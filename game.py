@@ -285,13 +285,11 @@ def view_scores(score_file):
         draw_text(f"Error: {score_file} not found.", font, RED, screen, reduced_width// 2, HEIGHT// 3)
 
     # Draw "Clear Scores" button
-    clear_button_rect = pygame.Rect(reduced_width // 2 - 100, HEIGHT - 100, 200, 50)
-    pygame.draw.rect(screen, (255, 0, 0), clear_button_rect)  # Red button
+    clear_button_rect = pygame.Rect(reduced_width // 2 - 100, HEIGHT - 150, 200, 50)
+    pygame.draw.rect(screen, (255, 0, 0), clear_button_rect) 
     clear_button_text = font.render("Clear Scores", True, WHITE)
     screen.blit(clear_button_text, (clear_button_rect.centerx - clear_button_text.get_width() // 2, 
     clear_button_rect.centery - clear_button_text.get_height() // 2))
-
-    # Draw the "Press ESC to return" message
     draw_text("Press ESC to return.", font, WHITE, screen, reduced_width// 2, HEIGHT - 50)
 
     pygame.display.update()
@@ -340,29 +338,30 @@ def confirm_delete_scores(score_file):
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_y:  # User confirms delete
-                    delete_scores(score_file)  # Empty the file
+                if event.key == pygame.K_y:  
+                    delete_scores(score_file)  
                     screen.blit(background, (0, 0)) 
                     draw_text("All scores deleted!", font, RED, screen, reduced_width // 2, HEIGHT // 2)
                     pygame.display.update()
                     pygame.time.delay(2000)  # Show message for 2 seconds
-                    view_scores(score_file)
-                elif event.key == pygame.K_n:  # User cancels delete
+                    pygame.display.set_mode((WIDTH, HEIGHT))
+                    return  
+                elif event.key == pygame.K_n: 
                     screen.blit(background, (0, 0)) 
                     draw_text("Scores not deleted.", font, WHITE, screen, reduced_width // 2, HEIGHT // 2)
                     pygame.display.update()
-                    pygame.time.delay(2000)  # Show message for 2 seconds
-                    view_scores(score_file)
+                    pygame.time.delay(2000)  
+                    pygame.display.set_mode((WIDTH, HEIGHT))
+                    return  
                 
 def confirm_quit():
     reduced_width = 800 
     # Temporarily change the display size
     pygame.display.set_mode((reduced_width, HEIGHT))
-    font = pygame.font.Font(None, 48)
+    font = font_game
     screen.blit(background, (0, 0)) 
-    background = background
-    draw_text("Do you really want to quit?", font, BLACK, screen, reduced_width// 2, HEIGHT// 3)
-    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    draw_text("Do you really want to quit?", font, WHITE, screen, reduced_width// 2, HEIGHT// 3)
+    draw_text("Press Y to confirm or N to cancel.", font,WHITE, screen, reduced_width// 2, HEIGHT// 2)
     pygame.display.update()
 
     while True:
@@ -371,27 +370,25 @@ def confirm_quit():
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_y:  # User confirms quit
+                if event.key == pygame.K_y:  
                     pygame.quit()
                     exit()
-                elif event.key == pygame.K_n:  # User cancels quit
-                    return  # Exit the confirmation screen and return to the menu
-
-
+                elif event.key == pygame.K_n:  
+                    pygame.display.set_mode((WIDTH, HEIGHT))
+                    return  
+                
 # Main game loop
 def play(difficulty):
     score_file = 'scores.txt'
     player_name = get_player_name(difficulty)
 
-    # Définir num_fruits en fonction de la difficulté
+    # choose num_fruits according to difficulty
     if difficulty == "easy":
         num_fruits = 2
     elif difficulty == "medium":
         num_fruits = 6
     elif difficulty == "hard":
         num_fruits = 10
-    else:
-        num_fruits = 4  # Par défaut, choisir une difficulté "medium"
 
     fruits = [Fruit(random.choice("ABCDEFGHIJKLMNOP")) for _ in range(num_fruits)]  # Only 2 fruits with letters
     bomb = Bomb()

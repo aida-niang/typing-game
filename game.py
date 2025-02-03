@@ -1,3 +1,4 @@
+# In this file, we have implented the principal options of the game (choose an option return to menu ....)
 import pygame
 import random
 import os

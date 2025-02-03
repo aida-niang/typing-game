@@ -30,6 +30,10 @@ start_screen_bg = pygame.image.load("assets/images/start.png")
 start_screen_bg = pygame.transform.scale(start_screen_bg, (WIDTH, HEIGHT))
 easy_bg = pygame.image.load("assets/images/easy.png")
 easy_bg = pygame.transform.scale(easy_bg, (WIDTH, HEIGHT))
+medium_bg = pygame.image.load("assets/images/medium.png")
+medium_bg = pygame.transform.scale(medium_bg, (WIDTH, HEIGHT))
+hard_bg = pygame.image.load("assets/images/hard.png")
+hard_bg = pygame.transform.scale(hard_bg, (WIDTH, HEIGHT))
 
 
 #load GIF frames
@@ -176,7 +180,7 @@ def draw_text(text, font, color, surface, x, y):
     textrect.center = (x, y)
     surface.blit(textobj, textrect)
 
-def get_player_name():
+def get_player_name(difficulty):
     input_box = pygame.Rect(0, 0, 200, 40) 
     input_box.center = (700, 430) 
     color_inactive = pygame.Color('lightskyblue3')
@@ -186,8 +190,17 @@ def get_player_name():
     text = ''
     font = pygame.font.Font(None, 48)
 
+    # Choose background based on difficulty
+    if difficulty == "easy":
+        background = easy_bg
+    elif difficulty == "medium":
+        background = medium_bg
+    elif difficulty == "hard":
+        background = hard_bg
+
     while True:
-        screen.blit(easy_bg, (0, 0))
+        # Apply the selected background
+        screen.blit(background, (0, 0)) 
         go_back_text = font.render("Press 'ESCAPE' to go back", True, RED)  
         screen.blit(go_back_text, (100, 100))
         draw_text("Enter your name", font_game, WHITE, screen, 700, 380)
@@ -368,7 +381,7 @@ def confirm_quit():
 # Main game loop
 def play(difficulty):
     score_file = 'scores.txt'
-    player_name = get_player_name()
+    player_name = get_player_name(difficulty)
 
     # Définir num_fruits en fonction de la difficulté
     if difficulty == "easy":

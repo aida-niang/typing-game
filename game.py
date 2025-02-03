@@ -97,12 +97,6 @@ def choose_menu():
         loading_text = font.render("Start playing...", True, WHITE)
         screen.blit(loading_text, (600, 50))
 
-        # Draw clickable areas
-        pygame.draw.rect(screen, (255, 0, 0), easy_rect, 2)  
-        pygame.draw.rect(screen, (0, 255, 0), medium_rect, 2)  
-        pygame.draw.rect(screen, (0, 0, 255), hard_rect, 2) 
-        pygame.draw.rect(screen, (255, 0, 0), scores_rect, 2)  
-        pygame.draw.rect(screen, (0, 255, 0), quit_rect, 2)   
 
         # Display animations
         screen.blit(easy_gif_frames[frame_index_easy], (50, 20))

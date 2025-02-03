@@ -24,10 +24,12 @@ clock = pygame.time.Clock()
 
 #Load background 
 background=pygame.image.load("assets/images/background_yin.jpeg")
-background_ice = pygame.image.load("assets/images/background_ice.jpg").convert_alpha()
+#background_ice = pygame.image.load("assets/images/background_ice.jpg").convert_alpha()
 background=background.convert()
 start_screen_bg = pygame.image.load("assets/images/start.png")
 start_screen_bg = pygame.transform.scale(start_screen_bg, (WIDTH, HEIGHT))
+easy_bg = pygame.image.load("assets/images/easy.png")
+easy_bg = pygame.transform.scale(easy_bg, (WIDTH, HEIGHT))
 
 
 #load GIF frames
@@ -77,11 +79,11 @@ def choose_menu():
     clock = pygame.time.Clock()
 
     # Define the position and size of the areas
-    easy_rect = pygame.Rect(50, 20, 400, 400)  
+    easy_rect = pygame.Rect(50, 20, 400, 380)  
     medium_rect = pygame.Rect(500, 200, 400, 400)
-    hard_rect = pygame.Rect(950, 20, 400, 400)
-    scores_rect = pygame.Rect(50, 400, 400, 400)
-    quit_rect = pygame.Rect(950, 400, 400, 400)
+    hard_rect = pygame.Rect(950, 20, 400, 380)
+    scores_rect = pygame.Rect(50, 400, 400, 380)
+    quit_rect = pygame.Rect(950, 400, 400, 380)
 
     while True:
         screen.blit(background, (0, 0))
@@ -176,8 +178,7 @@ def draw_text(text, font, color, surface, x, y):
 
 def get_player_name():
     input_box = pygame.Rect(0, 0, 200, 40) 
-    input_box.center = (WIDTH// 2, HEIGHT// 2) 
-    #input_box = pygame.Rect(WIDTH// 2 - 100, h // 2 - 20, 200, 40)
+    input_box.center = (700, 430) 
     color_inactive = pygame.Color('lightskyblue3')
     color_active = pygame.Color('dodgerblue2')
     color = color_inactive
@@ -186,12 +187,12 @@ def get_player_name():
     font = pygame.font.Font(None, 48)
 
     while True:
-        screen.blit(background, (0, 0))
+        screen.blit(easy_bg, (0, 0))
         go_back_text = font.render("Press 'ESCAPE' to go back", True, RED)  
         screen.blit(go_back_text, (100, 100))
-        draw_text("Enter your name:", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+        draw_text("Enter your name", font_game, WHITE, screen, 700, 380)
         pygame.draw.rect(screen, color, input_box, 2)
-        draw_text(text, font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+        draw_text(text, font_game, WHITE, screen, 700, 430)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -214,7 +215,7 @@ def get_player_name():
                     else:
                         text += event.unicode
                 if event.key == pygame.K_ESCAPE :
-                    choose_difficulty()
+                    choose_menu()
 
 def update_score(score_file, player_name, score):# Read the existing scores from the file
     try:

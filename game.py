@@ -316,7 +316,7 @@ def confirm_delete_scores(score_file):
     pygame.display.set_mode((reduced_width, HEIGHT))
     font = font_game
     screen.blit(background, (0, 0)) 
-    draw_text("Do you really want to delete all scores?", font, WHITE, screen, 50, HEIGHT // 3)
+    draw_text("Do you really want to delete all scores?", font, WHITE, screen, reduced_width //2, HEIGHT // 3)
     draw_text("Press Y to confirm or N to cancel.", font, WHITE, screen, reduced_width // 2, HEIGHT // 2)
     pygame.display.update()
 

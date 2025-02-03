@@ -6,3 +6,9 @@ a: 0
 staline: 5359
 jenairiendit: 316
 boom: 2965
+Aida: 107
+z: 0
+r: 1443
+p: 0
+i: 135
+AI: 0

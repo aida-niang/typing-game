@@ -24,7 +24,6 @@ clock = pygame.time.Clock()
 
 #Load background 
 background=pygame.image.load("assets/images/background_yin.jpeg")
-#background_ice = pygame.image.load("assets/images/background_ice.jpg").convert_alpha()
 background=background.convert()
 start_screen_bg = pygame.image.load("assets/images/start.png")
 start_screen_bg = pygame.transform.scale(start_screen_bg, (WIDTH, HEIGHT))
@@ -149,7 +148,7 @@ def choose_menu():
                     elif hard_rect.collidepoint(mouse_x, mouse_y):
                         play('hard')  
                     elif scores_rect.collidepoint(mouse_x, mouse_y):
-                        view_scores ()
+                        view_scores (score_file)
                         #if delete_score_rect.collidepoint(mouse_x, mouse_y):
                             #confirm_delete_scores
                     elif quit_rect.collidepoint(mouse_x, mouse_y):
@@ -180,6 +179,14 @@ def draw_text(text, font, color, surface, x, y):
     textrect.center = (x, y)
     surface.blit(textobj, textrect)
 
+def draw_text_multiline(text, font, color, surface, x, y, line_height=40):
+    lines = text.split("\n")  # Split the text by '\n' to create a list of lines
+    for i, line in enumerate(lines):
+        textobj = font.render(line, True, color)
+        textrect = textobj.get_rect()
+        textrect.topleft = (x, y + i * line_height)  # Position the lines one below the other
+        surface.blit(textobj, textrect)  # Render the text on the screen
+
 def get_player_name(difficulty):
     input_box = pygame.Rect(0, 0, 200, 40) 
     input_box.center = (700, 430) 
@@ -188,7 +195,7 @@ def get_player_name(difficulty):
     color = color_inactive
     active = False
     text = ''
-    font = pygame.font.Font(None, 48)
+    font = font_game
 
     # Choose background based on difficulty
     if difficulty == "easy":
@@ -255,26 +262,38 @@ def update_score(score_file, player_name, score):# Read the existing scores from
     with open(score_file, 'w', encoding='utf-8') as f:
         f.writelines(scores)
 
-# Function to view the scores
+# Function to view the scores and provide option to delete them
 def view_scores(score_file):
-    font = pygame.font.Font(None, 48)
-    screen.fill(WHITE)
-    draw_text("Scores:", font, BLACK, screen, WIDTH// 2, 50)
+    reduced_width = 800 
+    # Temporarily change the display size
+    pygame.display.set_mode((reduced_width, HEIGHT))
+    font = font_game
+    screen.blit(background, (0, 0)) 
+    draw_text("Scores:", font, WHITE, screen, reduced_width// 2, 50)
     
     try:
         with open(score_file, 'r', encoding='utf-8') as f:
             scores = f.readlines()
             if not scores:
-                draw_text("No scores available.", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+                draw_text("No scores available.", font, WHITE, screen, reduced_width// 2, HEIGHT// 3)
             else:
                 y_offset = 100
                 for score in scores:
-                    draw_text(score.strip(), font, BLACK, screen, WIDTH// 2, y_offset)
+                    draw_text(score.strip(), font, WHITE, screen, reduced_width// 2, y_offset)
                     y_offset += 40
     except FileNotFoundError:
-        draw_text(f"Error: {score_file} not found.", font, RED, screen, WIDTH// 2, HEIGHT// 3)
+        draw_text(f"Error: {score_file} not found.", font, RED, screen, reduced_width// 2, HEIGHT// 3)
 
-    draw_text("Press any key to return.", font, BLACK, screen, WIDTH// 2, HEIGHT- 50)
+    # Draw "Clear Scores" button
+    clear_button_rect = pygame.Rect(reduced_width // 2 - 100, HEIGHT - 100, 200, 50)
+    pygame.draw.rect(screen, (255, 0, 0), clear_button_rect)  # Red button
+    clear_button_text = font.render("Clear Scores", True, WHITE)
+    screen.blit(clear_button_text, (clear_button_rect.centerx - clear_button_text.get_width() // 2, 
+    clear_button_rect.centery - clear_button_text.get_height() // 2))
+
+    # Draw the "Press ESC to return" message
+    draw_text("Press ESC to return.", font, WHITE, screen, reduced_width// 2, HEIGHT - 50)
+
     pygame.display.update()
 
     waiting_for_key = True
@@ -284,57 +303,35 @@ def view_scores(score_file):
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
-                waiting_for_key = False
+                if event.key == pygame.K_ESCAPE:  
+                    waiting_for_key = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1: 
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if clear_button_rect.collidepoint(mouse_x, mouse_y):
+                        # Trigger the confirmation screen for clearing scores
+                        confirm_delete_scores(score_file)
 
-# Function to display the delete scores confirmation screen
-def confirm_delete_scores(score_file):
-    font = pygame.font.Font(None, 48)
-    screen.fill(WHITE)
-    draw_text("Do you really want to delete all scores?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
-    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
-    pygame.display.update()
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_y:  # User confirms delete
-                    with open(score_file, 'w', encoding='utf-8') as f:
-                        f.truncate(0)  # Empty the file
-                    screen.fill(WHITE)
-                    draw_text("All scores deleted!", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
-                    pygame.display.update()
-                    pygame.time.delay(2000)  # Show message for 2 seconds
-                    return
-                elif event.key == pygame.K_n:  # User cancels delete
-                    screen.fill(WHITE)
-                    draw_text("Scores not deleted.", font, RED, screen, WIDTH// 2, HEIGHT// 2)
-                    pygame.display.update()
-                    pygame.time.delay(2000)  # Show message for 2 seconds
-                    return
+ # Revert to the original screen size after exiting the view_scores function
+    pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Function to delete all scores
 def delete_scores(score_file):
-    print("Do you really want to delete all scores? (y/n): ")
-    confirm = input().strip().lower()  # Ask for confirmation from the user
-    
-    if confirm == 'y':
-        with open(score_file, 'w', encoding='utf-8') as f:
-            f.truncate(0)  # Empty the file
-        print("All scores deleted.")
-    elif confirm == 'n':
-        print("Scores not deleted.")
-    else:
-        print("Invalid choice. Please enter 'y' or 'n'.")
+    reduced_width = 800
+    # Temporarily change the display size
+    pygame.display.set_mode((reduced_width, HEIGHT))
+    with open(score_file, 'w', encoding='utf-8') as f:
+        f.truncate(0)  # Empty the file
 
 # Function to display the delete scores confirmation screen
 def confirm_delete_scores(score_file):
-    font = pygame.font.Font(None, 48)
-    screen.fill(WHITE)
-    draw_text("Do you really want to delete all scores?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
-    draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+    reduced_width = 800  
+    # Temporarily change the display size
+    pygame.display.set_mode((reduced_width, HEIGHT))
+    font = font_game
+    screen.blit(background, (0, 0)) 
+    draw_text_multiline("Do you really want to delete all scores?\n", font, WHITE, screen, 50, HEIGHT // 3)
+    draw_text("Press Y to confirm or N to cancel.", font, WHITE, screen, reduced_width // 2, HEIGHT // 2)
     pygame.display.update()
 
     while True:
@@ -344,24 +341,27 @@ def confirm_delete_scores(score_file):
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_y:  # User confirms delete
-                    with open(score_file, 'w', encoding='utf-8') as f:
-                        f.truncate(0)  # Empty the file
-                    screen.fill(WHITE)
-                    draw_text("All scores deleted!", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
+                    delete_scores(score_file)  # Empty the file
+                    screen.blit(background, (0, 0)) 
+                    draw_text("All scores deleted!", font, RED, screen, reduced_width // 2, HEIGHT // 2)
                     pygame.display.update()
                     pygame.time.delay(2000)  # Show message for 2 seconds
-                    return
+                    view_scores(score_file)
                 elif event.key == pygame.K_n:  # User cancels delete
-                    screen.fill(WHITE)
-                    draw_text("Scores not deleted.", font, RED, screen, HEIGHT// 2, HEIGHT// 2)
+                    screen.blit(background, (0, 0)) 
+                    draw_text("Scores not deleted.", font, WHITE, screen, reduced_width // 2, HEIGHT // 2)
                     pygame.display.update()
-                    pygame.time.delay(2000)  # ShoWIDTHmessage for 2 seconds
-                    return
+                    pygame.time.delay(2000)  # Show message for 2 seconds
+                    view_scores(score_file)
                 
 def confirm_quit():
+    reduced_width = 800 
+    # Temporarily change the display size
+    pygame.display.set_mode((reduced_width, HEIGHT))
     font = pygame.font.Font(None, 48)
-    screen.fill(WHITE)
-    draw_text("Do you really want to quit?", font, BLACK, screen, WIDTH// 2, HEIGHT// 3)
+    screen.blit(background, (0, 0)) 
+    background = background
+    draw_text("Do you really want to quit?", font, BLACK, screen, reduced_width// 2, HEIGHT// 3)
     draw_text("Press Y to confirm or N to cancel.", font, BLACK, screen, WIDTH// 2, HEIGHT// 2)
     pygame.display.update()
 

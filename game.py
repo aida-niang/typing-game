@@ -444,6 +444,7 @@ def play(difficulty):
                 
                 # Detect Bomb or Ice key press
                 if bomb.letter == key_pressed:
+                    sound_start.stop()
                     sound_end.play()
                     pygame.time.wait(int(sound_end.get_length() * 1000))
                     #display boom
@@ -457,6 +458,7 @@ def play(difficulty):
                     pygame.time.delay(2000)
                     run = False
                     choose_menu()
+                sound_start.play()
                 
                 if ice.letter == key_pressed:
                 #     # ice_surface=background_ice.copy()
@@ -501,6 +503,7 @@ def play(difficulty):
             if detect_collision(bomb.x, bomb.y, BOMB_SIZE, click_pos):
                 sound_start.stop()
                 sound_end.play()
+                pygame.time.wait(int(sound_end.get_length() * 1000))
                 screen.blit(bomb_image_sliced, (bomb.x, bomb.y))
                 pygame.display.flip()
                 pygame.time.delay(500) #update display and leaving a bit of time to see the boom    
@@ -511,6 +514,7 @@ def play(difficulty):
                 pygame.time.delay(2000)
                 run = False
                 choose_menu()
+            sound_start.play
 
             if detect_collision(ice.x, ice.y, ICE_SIZE, click_pos):
                 time_paused = True
@@ -528,6 +532,7 @@ def play(difficulty):
                 if lives == 0:
                     sound_start.stop()
                     sound_end.play()
+                    pygame.time.wait(int(sound_end.get_length() * 1000))
                     font = pygame.font.Font(None, 48)
                     game_over_text = font.render("Game Over!", True, RED)
                     screen.blit(game_over_text, (WIDTH // 2 - 100, HEIGHT // 2 - 20))
@@ -535,6 +540,7 @@ def play(difficulty):
                     pygame.time.delay(2000)
                     run = False
                     choose_menu()
+                sound_start.play()
 
                 fruit.reset()
 

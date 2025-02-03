@@ -1,3 +1,4 @@
+# In this file, we have imported the differents images in order to create a gif
 import pygame
 import os
 

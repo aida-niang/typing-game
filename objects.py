@@ -1,3 +1,4 @@
+#In this file, we have created the different objects : fruits, bomb and ice
 import pygame
 import random
 from settings import *

@@ -76,24 +76,33 @@ def choose_menu():
     frame_index_hard = 0
     clock = pygame.time.Clock()
 
-    # Define the position and size of the easy, medium, and hard difficulty areas
-    easy_rect = pygame.Rect(50, 100, 150, 150)  # (x, y, width, height)
-    medium_rect = pygame.Rect(50, 200, 150, 150)
-    hard_rect = pygame.Rect(50, 300, 150, 150)
+    # Define the position and size of the areas
+    easy_rect = pygame.Rect(50, 20, 400, 400)  
+    medium_rect = pygame.Rect(500, 200, 400, 400)
+    hard_rect = pygame.Rect(950, 20, 400, 400)
+    scores_rect = pygame.Rect(50, 400, 400, 400)
+    quit_rect = pygame.Rect(950, 400, 400, 400)
 
-    # Display difficulty options with animations
     while True:
         screen.blit(background, (0, 0))
 
         font = font_game
         loading_text = font.render("Start playing...", True, WHITE)
-        screen.blit(loading_text, (500, 700))
+        screen.blit(loading_text, (600, 50))
 
-        # Display animation gif
+        # Draw clickable areas
+        pygame.draw.rect(screen, (255, 0, 0), easy_rect, 2)  
+        pygame.draw.rect(screen, (0, 255, 0), medium_rect, 2)  
+        pygame.draw.rect(screen, (0, 0, 255), hard_rect, 2) 
+        pygame.draw.rect(screen, (255, 0, 0), scores_rect, 2)  
+        pygame.draw.rect(screen, (0, 255, 0), quit_rect, 2)   
+
+        # Display animations
         screen.blit(easy_gif_frames[frame_index_easy], (50, 20))
-        screen.blit(medium_gif_frames[frame_index_medium], (500, 300))
+        screen.blit(medium_gif_frames[frame_index_medium], (500, 200))
         screen.blit(hard_gif_frames[frame_index_hard], (950, 20))
-
+        screen.blit(scores_gif_frames[frame_index_medium], (50, 400))
+        screen.blit(quit_gif_frames[frame_index_hard], (950, 400))
 
         # Change frames for GIF animation
         frame_index_easy = (frame_index_easy + 1) % len(easy_gif_frames)
@@ -101,7 +110,7 @@ def choose_menu():
         frame_index_hard = (frame_index_hard + 1) % len(hard_gif_frames)
 
         pygame.display.flip()
-        clock.tick(10)  # speed of the GIFs
+        clock.tick(10)  
 
         # Handle events
         for event in pygame.event.get():
@@ -109,32 +118,36 @@ def choose_menu():
                 pygame.quit()
                 exit()
 
-            #Keyboard input
+            # Keyboard input
             if event.type == pygame.KEYDOWN:
-                # Check for keyboard inputs for difficulties
                 if event.key == pygame.K_1 or event.key == pygame.K_KP1:
-                    play('easy')  # Start game on easy mode
+                    play('easy')  
                 elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                    play('medium')  # Start game on medium mode
+                    play('medium')  
                 elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                    play('hard')  # Start game on hard mode
-                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                    view_scores(score_file) 
-                elif event.key == pygame.K_4 or event.key == pygame.K_KP4 or event.key == pygame.K_RETURN:
-                    confirm_quit()  # Call the confirmation dialog function 
+                    play('hard')  
+                elif event.key == pygame.K_4 or event.key == pygame.K_KP3 :
+                    view_scores(score_file)
+                elif event.key == pygame.K_5 or event.key == pygame.K_KP4 or event.key == pygame.K_RETURN:
+                    confirm_quit() 
 
-            # Mousse input
+            # Mouse input
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-
-                    # Check if the click was inside the "Easy" difficulty area
+            
                     if easy_rect.collidepoint(mouse_x, mouse_y):
-                        play('easy')  # Start game on easy mode
+                        play('easy')  
                     elif medium_rect.collidepoint(mouse_x, mouse_y):
-                        play('medium')  # Start game on medium mode
+                        play('medium')  
                     elif hard_rect.collidepoint(mouse_x, mouse_y):
-                        play('hard')  # Start game on hard mode
+                        play('hard')  
+                    elif scores_rect.collidepoint(mouse_x, mouse_y):
+                        view_scores ()
+                        #if delete_score_rect.collidepoint(mouse_x, mouse_y):
+                            #confirm_delete_scores
+                    elif quit_rect.collidepoint(mouse_x, mouse_y):
+                        confirm_quit ()
 
 # Detect collisions
 def detect_collision(obj_x, obj_y, obj_size, click_pos):

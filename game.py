@@ -175,14 +175,6 @@ def draw_text(text, font, color, surface, x, y):
     textrect.center = (x, y)
     surface.blit(textobj, textrect)
 
-def draw_text_multiline(text, font, color, surface, x, y, line_height=40):
-    lines = text.split("\n")  # Split the text by '\n' to create a list of lines
-    for i, line in enumerate(lines):
-        textobj = font.render(line, True, color)
-        textrect = textobj.get_rect()
-        textrect.topleft = (x, y + i * line_height)  # Position the lines one below the other
-        surface.blit(textobj, textrect)  # Render the text on the screen
-
 def get_player_name(difficulty):
     input_box = pygame.Rect(0, 0, 200, 40) 
     input_box.center = (700, 430) 
@@ -324,7 +316,7 @@ def confirm_delete_scores(score_file):
     pygame.display.set_mode((reduced_width, HEIGHT))
     font = font_game
     screen.blit(background, (0, 0)) 
-    draw_text_multiline("Do you really want to delete all scores?\n", font, WHITE, screen, 50, HEIGHT // 3)
+    draw_text("Do you really want to delete all scores?", font, WHITE, screen, 50, HEIGHT // 3)
     draw_text("Press Y to confirm or N to cancel.", font, WHITE, screen, reduced_width // 2, HEIGHT // 2)
     pygame.display.update()
 

@@ -9,6 +9,7 @@ The game mechanics include:
 - 3 Lives: You lose a life if you fail to slice a fruit.
 - Game Over: Instantly lose if you slice a bomb.
 - Freeze Power-up: Time pauses when you slice an ice.
+
 This game is designed to improve typing speed and accuracy while providing an exciting gaming experience!
 
 ## Demo

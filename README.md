@@ -50,7 +50,7 @@ Before running this project, ensure you have the following installed:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/aida-niang/pokemon.git
+   git clone https://github.com/aida-niang/typing-game.git
    ```
 2. Install dependencies:
    ```bash
